@@ -69,12 +69,13 @@
 
     /* ── HERO ── */
     #hero {
-      min-height: 100vh; padding-top: 66px;
-      display: grid; grid-template-columns: 1fr 1fr;
+      height: 100vh; padding-top: 66px;
+      display: grid; grid-template-columns: 1.1fr 0.9fr;
+      overflow: hidden;
     }
     .hero-left {
       display: flex; flex-direction: column; justify-content: center;
-      padding: 60px 48px 60px 60px; gap: 16px;
+      padding: 32px 40px 32px 60px; gap: 14px;
     }
     .hero-eyebrow {
       display: inline-block;
@@ -85,7 +86,7 @@
       align-self: flex-start;
     }
     .hero-logo-big img {
-      height: 420px; width: auto;
+      height: clamp(160px, 22vh, 260px); width: auto;
       display: block;
       max-width: 100%;
     }
@@ -121,11 +122,11 @@
 
     .hero-right {
       display: flex; align-items: center; justify-content: center;
-      padding: 60px 40px; position: relative;
+      padding: 32px 40px; position: relative;
     }
     .photo-wrap { position: relative; display: flex; flex-direction: column; align-items: center; gap: 14px; }
     .blob {
-      width: 220px; height: 265px;
+      width: clamp(160px, 18vw, 240px); height: clamp(190px, 21vw, 285px);
       border-radius: 50% 50% 46% 46%;
       background: var(--white);
       border: 2.5px solid var(--white-s);

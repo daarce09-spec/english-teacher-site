@@ -743,7 +743,16 @@ function showMsg(id,msg,type) {
   el.textContent=msg; el.className=`form-msg ${type}`;
   if(type==='success') setTimeout(()=>{el.textContent='';el.className='form-msg';},4000);
 }
-function fmtDate(d) { if(!d) return '—'; return new Date(d+'T12:00:00').toLocaleDateString('es-CR',{day:'2-digit',month:'short',year:'numeric'}); }
+function fmtDate(d) {
+  if(!d) return '—';
+  try {
+    // Handle both '2026-06-05' and full timestamps
+    const clean = typeof d === 'string' ? d.substring(0,10) : d;
+    const [y,m,day] = clean.split('-').map(Number);
+    const date = new Date(y, m-1, day);
+    return date.toLocaleDateString('es-CR',{day:'2-digit',month:'short',year:'numeric'});
+  } catch { return d; }
+}
 function fmtTime(t) { if(!t) return '—'; const[h,m]=t.split(':'); const hr=parseInt(h); return `${hr>12?hr-12:hr||12}:${m} ${hr>=12?'pm':'am'}`; }
 function statusLabel(s) { return {pending:'Pendiente',confirmed:'Confirmada',cancelled:'Cancelada'}[s]||s; }
 </script>

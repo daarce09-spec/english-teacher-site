@@ -163,7 +163,11 @@ router.get('/bookings', requireAuth, async (req, res) => {
     const { rows } = await pool.query(`
       SELECT b.*, c.name as course_name
       FROM bookings b LEFT JOIN courses c ON b.course_id=c.id
-      ORDER BY b.booking_date DESC, b.start_time ASC
+      ORDER BY 
+        CASE WHEN b.booking_date >= CURRENT_DATE THEN 0 ELSE 1 END,
+        CASE WHEN b.booking_date >= CURRENT_DATE THEN b.booking_date END ASC,
+        CASE WHEN b.booking_date < CURRENT_DATE THEN b.booking_date END DESC,
+        b.start_time ASC
     `);
     res.json({ success: true, data: rows });
   } catch (err) {

@@ -23,13 +23,23 @@
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
+    html {
+      background: var(--grad);
+      min-height: 100%;
+    }
     body {
       font-family: var(--sans);
-      background: var(--grad);
-      background-attachment: fixed;
+      background: transparent;
       color: var(--ink);
       overflow-x: hidden;
       min-height: 100vh;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg, #9EDEC0 0%, #C5B8E8 48%, #F5C4A0 100%);
+      z-index: -1;
     }
     a { text-decoration: none; color: inherit; }
     button { font-family: var(--sans); cursor: pointer; }
@@ -40,7 +50,7 @@
     ══════════════════════════════════ */
     #splash {
       position: fixed; inset: 0; z-index: 999;
-      background: var(--grad);
+      background: linear-gradient(135deg, #9EDEC0 0%, #C5B8E8 48%, #F5C4A0 100%);
       display: flex; align-items: center; justify-content: center;
       transition: opacity 0.6s ease, transform 0.6s ease;
     }

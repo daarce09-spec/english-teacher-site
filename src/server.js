@@ -15,20 +15,6 @@ const PORT = process.env.PORT || 3000;
 // Headers de seguridad HTTP
 app.use(helmet({ contentSecurityPolicy: false }));
 
-// Rate limit general — 100 requests por IP cada 15 min
-app.use('/api', rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: { success: false, error: 'Demasiadas solicitudes. Intenta en unos minutos.' }
-}));
-
-// Rate limit estricto para login — 10 intentos por IP cada 15 min
-app.use('/api/admin/login', rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10,
-  message: { success: false, error: 'Demasiados intentos de login. Espera 15 minutos.' }
-}));
-
 // CORS solo para el mismo dominio en producción
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'

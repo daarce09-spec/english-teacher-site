@@ -472,7 +472,11 @@ let editingCourseId = null;
 let allBookings = [];
 let allCourses = [];
 
-if (token) showApp();
+if (token) {
+  // Clear URL params if any
+  if (window.location.search) window.history.replaceState({}, '', '/admin');
+  showApp();
+}
 
 document.getElementById('loginBtn').addEventListener('click', doLogin);
 document.getElementById('loginPass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
@@ -494,7 +498,8 @@ async function doLogin() {
     if (!json.success) { errEl.textContent = json.error; return; }
     token = json.token;
     localStorage.setItem('adminToken', token);
-    showApp();
+    // Force fresh load to avoid cache issues
+    window.location.href = '/admin?t=' + Date.now();
   } catch { errEl.textContent = 'Error de conexión'; }
   finally { btn.disabled=false; btn.textContent='Ingresar'; }
 }

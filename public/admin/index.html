@@ -533,7 +533,10 @@ async function api(path, method='GET', body=null) {
   const opts = { method, headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } };
   if (body) opts.body = JSON.stringify(body);
   const res = await fetch(`${API}${path}`, opts);
-  if (res.status === 401) { localStorage.removeItem('adminToken'); location.reload(); }
+  // Solo cerrar sesión si es 401 en rutas que NO son password change
+  if (res.status === 401 && !path.includes('/password')) {
+    localStorage.removeItem('adminToken'); location.reload();
+  }
   return res.json();
 }
 

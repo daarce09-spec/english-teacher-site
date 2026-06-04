@@ -70,12 +70,12 @@
     /* ── HERO ── */
     #hero {
       height: 100vh; padding-top: 66px;
-      display: grid; grid-template-columns: 1.1fr 0.9fr;
+      display: grid; grid-template-columns: 55% 45%;
       overflow: hidden;
     }
     .hero-left {
       display: flex; flex-direction: column; justify-content: center;
-      padding: 32px 40px 32px 60px; gap: 14px;
+      padding: 28px 40px 28px 60px; gap: 12px;
     }
     .hero-eyebrow {
       display: inline-block;
@@ -86,9 +86,10 @@
       align-self: flex-start;
     }
     .hero-logo-big img {
-      height: clamp(160px, 22vh, 260px); width: auto;
+      width: 100%;
+      max-width: 480px;
+      height: auto;
       display: block;
-      max-width: 100%;
     }
     .hero-sub {
       font-size: 1rem; font-weight: 500; color: var(--ink-s);
@@ -122,11 +123,11 @@
 
     .hero-right {
       display: flex; align-items: center; justify-content: center;
-      padding: 32px 40px; position: relative;
+      padding: 28px 40px; position: relative;
     }
     .photo-wrap { position: relative; display: flex; flex-direction: column; align-items: center; gap: 14px; }
     .blob {
-      width: clamp(160px, 18vw, 240px); height: clamp(190px, 21vw, 285px);
+      width: clamp(200px, 22vw, 300px); height: clamp(240px, 26vw, 360px);
       border-radius: 50% 50% 46% 46%;
       background: var(--white);
       border: 2.5px solid var(--white-s);
@@ -372,7 +373,6 @@
 
 <section id="hero">
   <div class="hero-left">
-    <span class="hero-eyebrow">Clases de inglés · Costa Rica</span>
     <div class="hero-logo-big">
       <img src="/images/logo.png" alt="Let's Talk Language Studio" />
     </div>

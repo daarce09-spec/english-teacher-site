@@ -522,8 +522,8 @@
       <h2 class="sec-title">Agenda tu clase</h2>
       <p>Elige el curso, la fecha y el horario. Te confirmamos a la brevedad. ¡Con gusto te esperamos!</p>
       <div class="contact-list">
-        <div class="contact-item"><span class="c-icon">📱</span><span id="contactPhone">+506 8888-8888</span></div>
-        <div class="contact-item"><span class="c-icon">📧</span><span id="contactEmail">dianne@letstalk.cr</span></div>
+        <a class="contact-item" id="contactPhoneLink" href="#" target="_blank" style="text-decoration:none"><span class="c-icon">📱</span><span id="contactPhone">+506 8888-8888</span></a>
+        <a class="contact-item" id="contactEmailLink" href="#" style="text-decoration:none"><span class="c-icon">📧</span><span id="contactEmail">dianne@letstalk.cr</span></a>
         <div class="contact-item"><span class="c-icon">📍</span><span id="contactLocation">Costa Rica · Presencial y Virtual</span></div>
       </div>
     </div>
@@ -626,8 +626,15 @@ di.min = tom.toISOString().split('T')[0];
 fetch('/api/profile').then(r=>r.json()).then(j=>{
   if (!j.success || !j.data) return;
   const p = j.data;
-  if (p.phone)    document.getElementById('contactPhone').textContent = p.phone;
-  if (p.email)    { document.getElementById('contactEmail').textContent = p.email; document.getElementById('footerEmail').href = 'mailto:'+p.email; }
+  if (p.phone) {
+    document.getElementById('contactPhone').textContent = p.phone;
+    document.getElementById('contactPhoneLink').href = 'https://wa.me/'+p.whatsapp.replace(/[^0-9]/g,'');
+  }
+  if (p.email) {
+    document.getElementById('contactEmail').textContent = p.email;
+    document.getElementById('contactEmailLink').href = 'mailto:'+p.email;
+    document.getElementById('footerEmail').href = 'mailto:'+p.email;
+  }
   if (p.location) document.getElementById('contactLocation').textContent = p.location;
   if (p.whatsapp) document.getElementById('footerWhatsapp').href = 'https://wa.me/'+p.whatsapp.replace(/\D/g,'');
   if (p.instagram && p.instagram !== '#') document.getElementById('footerInstagram').href = p.instagram;

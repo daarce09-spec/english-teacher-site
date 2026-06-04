@@ -97,38 +97,46 @@
     .nav-cta:hover { transform: translateY(-1px); }
 
     /* ══════════════════════════════════
-       HERO — centrado, logo protagonista
+       HERO — 100vh, todo visible, UX correcto
     ══════════════════════════════════ */
     #hero {
-      min-height: 100vh; padding-top: 66px;
+      height: 100vh; padding-top: 66px;
       display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
     }
     .hero-inner {
       display: grid; grid-template-columns: 1fr 1fr;
-      width: 100%; max-width: 1200px;
+      width: 100%; height: 100%;
       padding: 0 60px; gap: 48px; align-items: center;
     }
-    .hero-left { display: flex; flex-direction: column; gap: 20px; }
+    .hero-left {
+      display: flex; flex-direction: column;
+      justify-content: center; gap: 16px;
+      height: 100%;
+    }
     .hero-logo-wrap img {
-      width: 100%; max-width: 500px;
+      width: 100%;
+      max-width: min(420px, 35vw);
       height: auto; display: block;
       filter: drop-shadow(0 8px 32px rgba(45,47,94,0.18));
     }
     .hero-sub {
-      font-size: 1.05rem; font-weight: 500; color: var(--ink-s);
-      line-height: 1.8; max-width: 420px;
+      font-size: clamp(0.85rem, 1.1vw, 1rem);
+      font-weight: 500; color: var(--ink-s);
+      line-height: 1.75; max-width: 420px;
     }
-    .hero-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+    .hero-pills { display: flex; flex-wrap: wrap; gap: 7px; }
     .pill {
-      font-size: 0.8rem; font-weight: 600; color: var(--ink);
-      background: var(--white); padding: 6px 14px; border-radius: 50px;
+      font-size: clamp(0.72rem, 0.9vw, 0.8rem);
+      font-weight: 600; color: var(--ink);
+      background: var(--white); padding: 5px 12px; border-radius: 50px;
       border: 1.5px solid var(--border);
     }
-    .hero-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+    .hero-btns { display: flex; gap: 10px; flex-wrap: wrap; }
     .btn-solid {
       display: inline-block; background: var(--navy); color: #fff;
       padding: 14px 32px; border-radius: 50px;
-      font-size: 0.9rem; font-weight: 800; border: none;
+      font-size: clamp(0.78rem, 1vw, 0.9rem); font-weight: 800; border: none;
       box-shadow: 0 6px 20px rgba(45,47,94,0.35);
       transition: transform 0.2s, box-shadow 0.2s;
     }
@@ -136,24 +144,27 @@
     .btn-ghost {
       display: inline-block; background: var(--white); color: var(--ink);
       padding: 13px 28px; border-radius: 50px;
-      font-size: 0.9rem; font-weight: 700;
+      font-size: clamp(0.78rem, 1vw, 0.9rem); font-weight: 700;
       border: 1.5px solid var(--border); transition: background 0.2s;
     }
     .btn-ghost:hover { background: var(--white-b); }
 
-    /* Hero right — info cards en lugar de foto */
-    .hero-right { display: flex; flex-direction: column; gap: 14px; }
+    /* Hero right — info cards */
+    .hero-right {
+      display: flex; flex-direction: column;
+      gap: 10px; justify-content: center; height: 100%;
+    }
     .info-card {
       background: var(--white); border: 1.5px solid var(--border);
-      border-radius: 18px; padding: 20px 24px;
+      border-radius: 16px; padding: 14px 18px;
       backdrop-filter: blur(10px);
-      display: flex; align-items: center; gap: 16px;
+      display: flex; align-items: center; gap: 14px;
       transition: transform 0.2s, background 0.2s;
     }
     .info-card:hover { transform: translateX(4px); background: var(--white-s); }
-    .info-icon { font-size: 1.8rem; flex-shrink: 0; }
-    .info-title { font-size: 0.95rem; font-weight: 800; color: var(--navy); margin-bottom: 3px; }
-    .info-desc { font-size: 0.8rem; color: var(--ink-s); font-weight: 500; line-height: 1.5; }
+    .info-icon { font-size: 1.5rem; flex-shrink: 0; }
+    .info-title { font-size: clamp(0.82rem, 1vw, 0.92rem); font-weight: 800; color: var(--navy); margin-bottom: 2px; }
+    .info-desc { font-size: clamp(0.72rem, 0.85vw, 0.78rem); color: var(--ink-s); font-weight: 500; line-height: 1.5; }
 
     /* ══════════════════════════════════
        DIVIDER

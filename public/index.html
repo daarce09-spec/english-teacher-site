@@ -54,7 +54,7 @@
       opacity: 0;
     }
     .splash-logo img {
-      width: min(55vw, 480px);
+      width: min(70vw, 480px);
       height: auto;
       filter: drop-shadow(0 16px 48px rgba(45,47,94,0.2));
     }
@@ -337,8 +337,25 @@
        RESPONSIVE
     ══════════════════════════════════ */
     @media(max-width:900px){
-      .hero-inner { grid-template-columns:1fr; padding:0 28px; }
+      .hero-inner {
+        grid-template-columns:1fr;
+        padding: 0 28px;
+        align-items: center;
+        justify-items: center;
+        text-align: center;
+      }
       .hero-right { display:none; }
+      .hero-left {
+        align-items: center;
+        gap: 14px;
+        padding: 20px 0;
+      }
+      .hero-logo-wrap img {
+        max-width: min(300px, 72vw) !important;
+      }
+      .hero-sub { text-align: center; max-width: 440px; }
+      .hero-pills { justify-content: center; }
+      .hero-btns { justify-content: center; }
       #courses { padding:60px 28px; }
       .courses-grid { grid-template-columns:1fr 1fr; }
       #booking { padding:60px 28px; }
@@ -350,10 +367,13 @@
     @media(max-width:560px){
       nav { padding:0 20px; }
       .nav-right a:not(.nav-cta) { display:none; }
+      #hero { height: auto; min-height: 100vh; }
+      .hero-logo-wrap img { max-width: min(280px, 80vw) !important; }
       .courses-grid { grid-template-columns:1fr; }
       .booking-card { padding:22px 18px; }
       .form-row { grid-template-columns:1fr; }
       .form-actions { flex-direction:column-reverse; }
+      .btn-solid, .btn-ghost { width: 100%; text-align: center; }
     }
   </style>
 </head>

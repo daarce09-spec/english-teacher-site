@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel Admin · Sofia Reyes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --clay: #C47C5A; --clay-d: #A35F3F; --clay-l: rgba(196,124,90,0.1);
+      --sage: #7A9B76;
+      --ink: #1A1410; --ink-s: #4A3F35; --ink-m: #8A7A6E;
+      --bg: #F5F0EB; --card: #FFFFFF; --border: #E8DDD4;
+      --success: #2ecc71; --danger: #e74c3c; --warn: #f39c12;
+      --sidebar-w: 230px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; }
+    a { text-decoration: none; color: inherit; }
+    button { font-family: inherit; cursor: pointer; }
+    input, select, textarea { font-family: inherit; }
+
+    /* ── LOGIN ── */
+    #loginScreen {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, #FAF6F0 0%, #F2EBE0 100%);
+    }
+    .login-card {
+      background: var(--card); border-radius: 16px; padding: 48px 40px;
+      width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(26,20,16,0.1);
+    }
+    .login-logo { font-size: 2rem; font-weight: 600; color: var(--clay); margin-bottom: 6px; }
+    .login-sub { font-size: 0.85rem; color: var(--ink-m); margin-bottom: 32px; }
+    .login-card label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--ink-s); margin-bottom: 6px; }
+    .login-card input {
+      width: 100%; padding: 11px 14px; border: 1.5px solid var(--border);
+      border-radius: 8px; font-size: 0.9rem; outline: none;
+      transition: border-color 0.2s; margin-bottom: 16px;
+    }
+    .login-card input:focus { border-color: var(--clay); }
+    .login-error { color: var(--danger); font-size: 0.82rem; margin-bottom: 12px; min-height: 18px; }
+    .btn-login {
+      width: 100%; padding: 13px; background: var(--clay); color: #fff;
+      border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 500;
+      transition: background 0.2s;
+    }
+    .btn-login:hover { background: var(--clay-d); }
+
+    /* ── LAYOUT ── */
+    #app { display: none; }
+    #app.visible { display: flex; min-height: 100vh; }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: var(--sidebar-w); background: var(--ink); color: #fff;
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 50;
+      transition: transform 0.3s;
+    }
+    .sidebar-logo {
+      padding: 24px 20px 20px;
+      font-size: 1.4rem; font-weight: 600; color: var(--clay);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .sidebar-logo span { display: block; font-size: 0.7rem; font-weight: 400; color: rgba(255,255,255,0.4); margin-top: 2px; }
+    .sidebar-nav { flex: 1; padding: 16px 0; overflow-y: auto; }
+    .nav-item {
+      display: flex; align-items: center; gap: 11px;
+      padding: 11px 20px; font-size: 0.875rem; color: rgba(255,255,255,0.6);
+      cursor: pointer; transition: all 0.2s; border-left: 3px solid transparent;
+    }
+    .nav-item:hover { color: #fff; background: rgba(255,255,255,0.05); }
+    .nav-item.active { color: #fff; border-left-color: var(--clay); background: rgba(196,124,90,0.1); }
+    .nav-item .icon { font-size: 1rem; width: 20px; text-align: center; }
+    .sidebar-footer { padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.08); }
+    .btn-logout {
+      width: 100%; padding: 10px; background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;
+      color: rgba(255,255,255,0.6); font-size: 0.82rem; transition: all 0.2s;
+    }
+    .btn-logout:hover { background: rgba(231,76,60,0.2); color: #fff; border-color: rgba(231,76,60,0.4); }
+
+    /* ── MAIN ── */
+    .main { margin-left: var(--sidebar-w); flex: 1; padding: 32px; min-width: 0; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .page-title { font-size: 1.5rem; font-weight: 600; margin-bottom: 6px; }
+    .page-sub { font-size: 0.875rem; color: var(--ink-m); margin-bottom: 28px; }
+
+    /* ── STATS ── */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+    .stat-card {
+      background: var(--card); border-radius: 12px; padding: 20px 24px;
+      border: 1px solid var(--border);
+    }
+    .stat-card .s-label { font-size: 0.75rem; color: var(--ink-m); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+    .stat-card .s-num { font-size: 2rem; font-weight: 600; color: var(--clay); line-height: 1; }
+    .stat-card .s-desc { font-size: 0.78rem; color: var(--ink-m); margin-top: 4px; }
+
+    /* ── CARDS & TABLES ── */
+    .card { background: var(--card); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 24px; }
+    .card-header {
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .card-header h3 { font-size: 0.95rem; font-weight: 600; }
+    .card-body { padding: 20px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th { text-align: left; padding: 10px 14px; font-size: 0.75rem; font-weight: 500; color: var(--ink-m); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); }
+    td { padding: 12px 14px; border-bottom: 1px solid #F5F0EB; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #FDFAF7; }
+
+    /* ── BADGES ── */
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 50px; font-size: 0.72rem; font-weight: 500; }
+    .badge-pending  { background: rgba(243,156,18,0.12);  color: #b7770d; }
+    .badge-confirmed{ background: rgba(46,204,113,0.12);  color: #1e8449; }
+    .badge-cancelled{ background: rgba(231,76,60,0.12);   color: #c0392b; }
+    .badge-active   { background: rgba(122,155,118,0.15); color: #4a7446; }
+    .badge-inactive { background: rgba(138,122,110,0.15); color: var(--ink-m); }
+    .badge-approved { background: rgba(46,204,113,0.12);  color: #1e8449; }
+    .badge-pending-r{ background: rgba(243,156,18,0.12);  color: #b7770d; }
+
+    /* ── BUTTONS ── */
+    .btn { padding: 8px 16px; border-radius: 8px; font-size: 0.82rem; font-weight: 500; border: none; transition: all 0.2s; }
+    .btn-primary { background: var(--clay); color: #fff; }
+    .btn-primary:hover { background: var(--clay-d); }
+    .btn-sm { padding: 5px 12px; font-size: 0.78rem; border-radius: 6px; }
+    .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--ink-s); }
+    .btn-outline:hover { border-color: var(--clay); color: var(--clay); }
+    .btn-danger { background: rgba(231,76,60,0.1); color: var(--danger); border: 1.5px solid rgba(231,76,60,0.2); }
+    .btn-danger:hover { background: var(--danger); color: #fff; }
+    .btn-success { background: rgba(46,204,113,0.1); color: var(--success); border: 1.5px solid rgba(46,204,113,0.2); }
+    .btn-success:hover { background: var(--success); color: #fff; }
+    .btn-warn { background: rgba(243,156,18,0.1); color: var(--warn); border: 1.5px solid rgba(243,156,18,0.2); }
+    .btn-warn:hover { background: var(--warn); color: #fff; }
+    .btn-gap { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    /* ── FORMS ── */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-group label { font-size: 0.8rem; font-weight: 500; color: var(--ink-s); }
+    .form-group input, .form-group select, .form-group textarea {
+      padding: 10px 13px; border: 1.5px solid var(--border);
+      border-radius: 8px; font-size: 0.88rem; outline: none;
+      transition: border-color 0.2s; background: var(--bg);
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--clay); background: #fff; }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+    .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
+    .form-msg { font-size: 0.82rem; padding: 10px 14px; border-radius: 8px; min-height: 36px; }
+    .form-msg.success { background: rgba(46,204,113,0.1); color: #1e8449; }
+    .form-msg.error   { background: rgba(231,76,60,0.1);  color: var(--danger); }
+
+    /* ── MODAL ── */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.open { display: flex; }
+    .modal-box { background: var(--card); border-radius: 16px; padding: 32px; width: 100%; max-width: 560px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto; }
+    .modal-box h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 20px; }
+    .modal-close { float: right; background: none; border: none; font-size: 1.3rem; color: var(--ink-m); cursor: pointer; margin-top: -4px; }
+
+    /* ── SLOTS ── */
+    .slots-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .slot-chip {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--clay-l); color: var(--clay-d);
+      padding: 5px 12px; border-radius: 50px; font-size: 0.8rem; font-weight: 500;
+    }
+    .slot-chip button { background: none; border: none; color: var(--clay-d); font-size: 0.9rem; line-height: 1; padding: 0; opacity: 0.6; transition: opacity 0.2s; }
+    .slot-chip button:hover { opacity: 1; }
+    .slot-add-row { display: flex; gap: 8px; align-items: flex-end; margin-top: 12px; flex-wrap: wrap; }
+    .slot-add-row .form-group { flex: 1; min-width: 130px; }
+
+    /* ── STARS ── */
+    .stars { color: var(--clay); letter-spacing: 1px; }
+
+    /* ── EMPTY ── */
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--ink-m); font-size: 0.875rem; }
+
+    /* ── LOADING ── */
+    .loading { text-align: center; padding: 30px; color: var(--ink-m); font-size: 0.875rem; }
+
+    @media (max-width: 900px) {
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .main { margin-left: 0; padding: 16px; padding-top: 70px; }
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .mobile-header { display: flex !important; }
+    }
+    .mobile-header {
+      display: none; position: fixed; top: 0; left: 0; right: 0; height: 60px;
+      background: var(--ink); align-items: center; padding: 0 16px;
+      z-index: 49; gap: 14px;
+    }
+    .mobile-header span { color: var(--clay); font-size: 1.2rem; font-weight: 600; }
+    .hamburger-btn { background: none; border: none; color: #fff; font-size: 1.3rem; }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">SR</div>
+    <div class="login-sub">Panel de Administración</div>
+    <label>Usuario</label>
+    <input type="text" id="loginUser" placeholder="admin" />
+    <label>Contraseña</label>
+    <input type="password" id="loginPass" placeholder="••••••••" />
+    <div class="login-error" id="loginError"></div>
+    <button class="btn-login" id="loginBtn">Ingresar</button>
+  </div>
+</div>
+
+<!-- MOBILE HEADER -->
+<div class="mobile-header">
+  <button class="hamburger-btn" onclick="toggleSidebar()">☰</button>
+  <span>Admin Panel</span>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">SR <span>Panel de Administración</span></div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" data-page="dashboard"><span class="icon">📊</span> Dashboard</div>
+      <div class="nav-item" data-page="bookings"><span class="icon">📅</span> Reservas</div>
+      <div class="nav-item" data-page="courses"><span class="icon">📚</span> Cursos</div>
+      <div class="nav-item" data-page="reviews"><span class="icon">⭐</span> Reseñas</div>
+      <div class="nav-item" data-page="profile"><span class="icon">👤</span> Mi Perfil</div>
+      <div class="nav-item" data-page="security"><span class="icon">🔒</span> Seguridad</div>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="/" target="_blank" style="display:block;text-align:center;font-size:0.78rem;color:rgba(255,255,255,0.4);margin-bottom:10px;">← Ver sitio público</a>
+      <button class="btn-logout" id="logoutBtn">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-title">Dashboard</div>
+      <div class="page-sub">Resumen general del sitio</div>
+      <div class="stats-grid" id="statsGrid"><div class="loading">Cargando...</div></div>
+      <div class="card">
+        <div class="card-header"><h3>Próximas reservas</h3></div>
+        <div id="upcomingBookings"><div class="loading">Cargando...</div></div>
+      </div>
+    </div>
+
+    <!-- BOOKINGS -->
+    <div class="page" id="page-bookings">
+      <div class="page-title">Reservas</div>
+      <div class="page-sub">Gestiona todas las solicitudes de clase</div>
+      <div class="card">
+        <div class="card-header">
+          <h3>Todas las reservas</h3>
+          <div style="display:flex;gap:8px">
+            <select id="filterStatus" class="btn btn-outline btn-sm" style="padding:5px 10px">
+              <option value="">Todos los estados</option>
+              <option value="pending">Pendientes</option>
+              <option value="confirmed">Confirmadas</option>
+              <option value="cancelled">Canceladas</option>
+            </select>
+          </div>
+        </div>
+        <div id="bookingsTableWrap"><div class="loading">Cargando...</div></div>
+      </div>
+    </div>
+
+    <!-- COURSES -->
+    <div class="page" id="page-courses">
+      <div class="page-title">Cursos y Talleres</div>
+      <div class="page-sub">Agrega, edita o desactiva los cursos que ofreces</div>
+      <div class="card">
+        <div class="card-header">
+          <h3>Cursos activos</h3>
+          <button class="btn btn-primary btn-sm" onclick="openCourseModal()">+ Nuevo curso</button>
+        </div>
+        <div id="coursesTableWrap"><div class="loading">Cargando...</div></div>
+      </div>
+    </div>
+
+    <!-- REVIEWS -->
+    <div class="page" id="page-reviews">
+      <div class="page-title">Reseñas</div>
+      <div class="page-sub">Modera los comentarios de tus estudiantes</div>
+      <div class="card">
+        <div class="card-header"><h3>Todas las reseñas</h3></div>
+        <div id="reviewsTableWrap"><div class="loading">Cargando...</div></div>
+      </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="page" id="page-profile">
+      <div class="page-title">Mi Perfil</div>
+      <div class="page-sub">Edita la información que aparece en el sitio público</div>
+      <div class="card">
+        <div class="card-header"><h3>Información personal</h3></div>
+        <div class="card-body">
+          <div id="profileForm"><div class="loading">Cargando...</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECURITY -->
+    <div class="page" id="page-security">
+      <div class="page-title">Seguridad</div>
+      <div class="page-sub">Cambia tu contraseña de acceso al panel</div>
+      <div class="card" style="max-width:440px">
+        <div class="card-header"><h3>Cambiar contraseña</h3></div>
+        <div class="card-body">
+          <div class="form-group" style="margin-bottom:14px">
+            <label>Contraseña actual</label>
+            <input type="password" id="pwCurrent" placeholder="••••••••" />
+          </div>
+          <div class="form-group" style="margin-bottom:14px">
+            <label>Nueva contraseña</label>
+            <input type="password" id="pwNew" placeholder="Mínimo 6 caracteres" />
+          </div>
+          <div class="form-group" style="margin-bottom:16px">
+            <label>Confirmar nueva contraseña</label>
+            <input type="password" id="pwConfirm" placeholder="Repite la contraseña" />
+          </div>
+          <div class="form-msg" id="pwMsg"></div>
+          <div class="form-actions">
+            <button class="btn btn-primary" onclick="changePassword()">Actualizar contraseña</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- COURSE MODAL -->
+<div class="modal-overlay" id="courseModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeCourseModal()">×</button>
+    <h3 id="courseModalTitle">Nuevo Curso</h3>
+    <input type="hidden" id="courseId" />
+    <div class="form-grid" style="margin-bottom:16px">
+      <div class="form-group full"><label>Nombre del curso *</label><input type="text" id="cName" placeholder="Ej: Business English" /></div>
+      <div class="form-group full"><label>Descripción</label><textarea id="cDesc" placeholder="¿Qué aprenderán los estudiantes?"></textarea></div>
+      <div class="form-group"><label>Nivel</label><input type="text" id="cLevel" placeholder="Ej: Intermedio - Avanzado" /></div>
+      <div class="form-group"><label>Duración (minutos)</label><input type="number" id="cDuration" value="60" min="15" /></div>
+      <div class="form-group"><label>Precio (₡)</label><input type="number" id="cPrice" placeholder="25000" min="0" /></div>
+      <div class="form-group"><label>Máx. estudiantes por sesión</label><input type="number" id="cMax" value="1" min="1" /></div>
+      <div class="form-group"><label>Estado</label>
+        <select id="cActive"><option value="true">Activo (visible en el sitio)</option><option value="false">Inactivo (oculto)</option></select>
+      </div>
+    </div>
+
+    <!-- Slots dentro del modal -->
+    <div style="border-top:1px solid var(--border);padding-top:18px;margin-top:4px">
+      <div style="font-size:0.9rem;font-weight:600;margin-bottom:4px">Horarios disponibles</div>
+      <div style="font-size:0.78rem;color:var(--ink-m);margin-bottom:12px">Define qué días y horas tienes disponibles para este curso</div>
+      <div class="slots-list" id="slotsList"></div>
+      <div class="slot-add-row">
+        <div class="form-group"><label>Día</label>
+          <select id="slotDay">
+            <option value="1">Lunes</option><option value="2">Martes</option>
+            <option value="3">Miércoles</option><option value="4">Jueves</option>
+            <option value="5">Viernes</option><option value="6">Sábado</option>
+            <option value="0">Domingo</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Hora</label><input type="time" id="slotTime" value="08:00" /></div>
+        <button class="btn btn-outline btn-sm" style="margin-bottom:1px" onclick="addSlot()">+ Agregar horario</button>
+      </div>
+    </div>
+
+    <div class="form-msg" id="courseMsg" style="margin-top:12px"></div>
+    <div class="form-actions">
+      <button class="btn btn-outline" onclick="closeCourseModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveCourse()">Guardar curso</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '/api/admin';
+let token = localStorage.getItem('adminToken');
+const DAYS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+let currentCourseSlots = []; // slots for open course modal
+let editingCourseId = null;
+
+// ── AUTH ──────────────────────────────────
+if (token) showApp();
+
+document.getElementById('loginBtn').addEventListener('click', doLogin);
+document.getElementById('loginPass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+async function doLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  const errEl = document.getElementById('loginError');
+  errEl.textContent = '';
+  if (!u || !p) { errEl.textContent = 'Completa los campos'; return; }
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.textContent = 'Ingresando...';
+  try {
+    const res = await fetch(`${API}/login`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({username:u, password:p})
+    });
+    const json = await res.json();
+    if (!json.success) { errEl.textContent = json.error; return; }
+    token = json.token;
+    localStorage.setItem('adminToken', token);
+    showApp();
+  } catch { errEl.textContent = 'Error de conexión'; }
+  finally { btn.disabled=false; btn.textContent='Ingresar'; }
+}
+
+function showApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('app').classList.add('visible');
+  loadDashboard();
+}
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  localStorage.removeItem('adminToken');
+  token = null;
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('loginScreen').style.display = 'flex';
+});
+
+// ── NAVIGATION ────────────────────────────
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    item.classList.add('active');
+    const page = item.dataset.page;
+    document.getElementById(`page-${page}`).classList.add('active');
+    document.getElementById('sidebar').classList.remove('open');
+    if (page === 'dashboard') loadDashboard();
+    if (page === 'bookings') loadBookings();
+    if (page === 'courses') loadCourses();
+    if (page === 'reviews') loadReviews();
+    if (page === 'profile') loadProfile();
+  });
+});
+
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+// ── API HELPER ────────────────────────────
+async function api(path, method='GET', body=null) {
+  const opts = { method, headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(`${API}${path}`, opts);
+  if (res.status === 401) { localStorage.removeItem('adminToken'); location.reload(); }
+  return res.json();
+}
+
+// ── DASHBOARD ─────────────────────────────
+async function loadDashboard() {
+  const [stats, bookings] = await Promise.all([api('/stats'), api('/bookings')]);
+  if (stats.success) {
+    const d = stats.data;
+    document.getElementById('statsGrid').innerHTML = `
+      <div class="stat-card"><div class="s-label">Reservas totales</div><div class="s-num">${d.total_bookings}</div><div class="s-desc">sin canceladas</div></div>
+      <div class="stat-card"><div class="s-label">Pendientes</div><div class="s-num" style="color:var(--warn)">${d.pending_bookings}</div><div class="s-desc">por confirmar</div></div>
+      <div class="stat-card"><div class="s-label">Cursos activos</div><div class="s-num" style="color:var(--sage)">${d.active_courses}</div><div class="s-desc">disponibles</div></div>
+      <div class="stat-card"><div class="s-label">Reseñas pendientes</div><div class="s-num" style="color:var(--clay)">${d.pending_reviews}</div><div class="s-desc">por moderar</div></div>
+    `;
+  }
+  if (bookings.success) {
+    const today = new Date().toISOString().split('T')[0];
+    const upcoming = bookings.data.filter(b => b.booking_date >= today && b.status !== 'cancelled').slice(0,8);
+    if (upcoming.length === 0) {
+      document.getElementById('upcomingBookings').innerHTML = '<div class="empty-state">No hay reservas próximas</div>';
+    } else {
+      document.getElementById('upcomingBookings').innerHTML = `
+        <table><thead><tr><th>Fecha</th><th>Hora</th><th>Estudiante</th><th>Curso</th><th>Estado</th></tr></thead>
+        <tbody>${upcoming.map(b => `
+          <tr>
+            <td>${fmtDate(b.booking_date)}</td>
+            <td>${fmtTime(b.start_time)}</td>
+            <td><strong>${b.student_name}</strong><br><small style="color:var(--ink-m)">${b.student_email}</small></td>
+            <td>${b.course_name||'—'}</td>
+            <td><span class="badge badge-${b.status}">${statusLabel(b.status)}</span></td>
+          </tr>`).join('')}
+        </tbody></table>`;
+    }
+  }
+}
+
+// ── BOOKINGS ──────────────────────────────
+let allBookings = [];
+async function loadBookings() {
+  const json = await api('/bookings');
+  if (!json.success) return;
+  allBookings = json.data;
+  renderBookings(allBookings);
+}
+function renderBookings(data) {
+  if (data.length === 0) { document.getElementById('bookingsTableWrap').innerHTML = '<div class="empty-state">No hay reservas aún</div>'; return; }
+  document.getElementById('bookingsTableWrap').innerHTML = `
+    <table><thead><tr><th>Fecha</th><th>Hora</th><th>Estudiante</th><th>Curso</th><th>Estado</th><th>Acciones</th></tr></thead>
+    <tbody>${data.map(b => `
+      <tr>
+        <td>${fmtDate(b.booking_date)}</td>
+        <td>${fmtTime(b.start_time)}</td>
+        <td><strong>${b.student_name}</strong><br><small style="color:var(--ink-m)">${b.student_email}${b.student_phone ? ' · '+b.student_phone : ''}</small>
+          ${b.message ? `<br><small style="color:var(--ink-m);font-style:italic">"${b.message}"</small>` : ''}</td>
+        <td>${b.course_name||'—'}</td>
+        <td><span class="badge badge-${b.status}">${statusLabel(b.status)}</span></td>
+        <td><div class="btn-gap">
+          ${b.status==='pending' ? `<button class="btn btn-success btn-sm" onclick="updateBooking(${b.id},'confirmed')">✓ Confirmar</button>` : ''}
+          ${b.status!=='cancelled' ? `<button class="btn btn-warn btn-sm" onclick="updateBooking(${b.id},'cancelled')">Cancelar</button>` : ''}
+          <button class="btn btn-danger btn-sm" onclick="deleteBooking(${b.id})">Eliminar</button>
+        </div></td>
+      </tr>`).join('')}
+    </tbody></table>`;
+}
+document.getElementById('filterStatus').addEventListener('change', e => {
+  const v = e.target.value;
+  renderBookings(v ? allBookings.filter(b => b.status===v) : allBookings);
+});
+async function updateBooking(id, status) {
+  await api(`/bookings/${id}`, 'PUT', {status});
+  loadBookings(); loadDashboard();
+}
+async function deleteBooking(id) {
+  if (!confirm('¿Eliminar esta reserva?')) return;
+  await api(`/bookings/${id}`, 'DELETE');
+  loadBookings(); loadDashboard();
+}
+
+// ── COURSES ───────────────────────────────
+let allCourses = [];
+async function loadCourses() {
+  const json = await api('/courses');
+  if (!json.success) return;
+  allCourses = json.data;
+  if (allCourses.length === 0) { document.getElementById('coursesTableWrap').innerHTML = '<div class="empty-state">No hay cursos aún. ¡Agrega uno!</div>'; return; }
+  document.getElementById('coursesTableWrap').innerHTML = `
+    <table><thead><tr><th>Curso</th><th>Nivel</th><th>Duración</th><th>Precio</th><th>Máx.</th><th>Estado</th><th>Acciones</th></tr></thead>
+    <tbody>${allCourses.map(c => `
+      <tr>
+        <td><strong>${c.name}</strong><br><small style="color:var(--ink-m)">${(c.description||'').substring(0,60)}${(c.description||'').length>60?'...':''}</small></td>
+        <td>${c.level||'—'}</td>
+        <td>${c.duration_minutes} min</td>
+        <td>₡${Number(c.price).toLocaleString('es-CR')}</td>
+        <td>${c.max_students}</td>
+        <td><span class="badge badge-${c.active?'active':'inactive'}">${c.active?'Activo':'Inactivo'}</span></td>
+        <td><div class="btn-gap">
+          <button class="btn btn-outline btn-sm" onclick="editCourse(${c.id})">Editar</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteCourse(${c.id})">Eliminar</button>
+        </div></td>
+      </tr>`).join('')}
+    </tbody></table>`;
+}
+
+function openCourseModal(course=null) {
+  editingCourseId = course ? course.id : null;
+  document.getElementById('courseModalTitle').textContent = course ? 'Editar Curso' : 'Nuevo Curso';
+  document.getElementById('courseId').value = course?.id || '';
+  document.getElementById('cName').value = course?.name || '';
+  document.getElementById('cDesc').value = course?.description || '';
+  document.getElementById('cLevel').value = course?.level || '';
+  document.getElementById('cDuration').value = course?.duration_minutes || 60;
+  document.getElementById('cPrice').value = course?.price || '';
+  document.getElementById('cMax').value = course?.max_students || 1;
+  document.getElementById('cActive').value = course ? String(course.active) : 'true';
+  document.getElementById('courseMsg').textContent = '';
+  document.getElementById('courseMsg').className = 'form-msg';
+  currentCourseSlots = [];
+  document.getElementById('slotsList').innerHTML = '';
+  if (course) loadSlotsForModal(course.id);
+  document.getElementById('courseModal').classList.add('open');
+}
+
+async function loadSlotsForModal(courseId) {
+  const json = await api(`/slots/${courseId}`);
+  if (json.success) {
+    currentCourseSlots = json.data.map(s => ({id:s.id, day:s.day_of_week, time:s.start_time.slice(0,5)}));
+    renderSlots();
+  }
+}
+
+function renderSlots() {
+  document.getElementById('slotsList').innerHTML = currentCourseSlots.map((s,i) => `
+    <div class="slot-chip">
+      ${DAYS[s.day]} ${fmtTime(s.time)}
+      <button onclick="removeSlot(${i})" title="Eliminar">×</button>
+    </div>`).join('');
+}
+
+async function addSlot() {
+  const day = parseInt(document.getElementById('slotDay').value);
+  const time = document.getElementById('slotTime').value;
+  if (!time) return;
+  if (!editingCourseId) {
+    // just add to local list for new courses
+    if (currentCourseSlots.some(s => s.day===day && s.time===time)) return;
+    currentCourseSlots.push({id:null, day, time});
+    renderSlots(); return;
+  }
+  const json = await api('/slots', 'POST', {course_id: editingCourseId, day_of_week: day, start_time: time});
+  if (json.success) { currentCourseSlots.push({id:json.data.id, day, time}); renderSlots(); }
+  else showMsg('courseMsg', json.error, 'error');
+}
+
+async function removeSlot(index) {
+  const slot = currentCourseSlots[index];
+  if (slot.id) await api(`/slots/${slot.id}`, 'DELETE');
+  currentCourseSlots.splice(index, 1);
+  renderSlots();
+}
+
+async function saveCourse() {
+  const name = document.getElementById('cName').value.trim();
+  if (!name) { showMsg('courseMsg','El nombre es requerido','error'); return; }
+  const data = {
+    name, description: document.getElementById('cDesc').value,
+    level: document.getElementById('cLevel').value,
+    duration_minutes: parseInt(document.getElementById('cDuration').value)||60,
+    price: parseFloat(document.getElementById('cPrice').value)||0,
+    max_students: parseInt(document.getElementById('cMax').value)||1,
+    active: document.getElementById('cActive').value === 'true'
+  };
+  let json;
+  if (editingCourseId) {
+    json = await api(`/courses/${editingCourseId}`, 'PUT', data);
+  } else {
+    json = await api('/courses', 'POST', data);
+    if (json.success && currentCourseSlots.length > 0) {
+      const cid = json.data.id;
+      for (const s of currentCourseSlots) {
+        await api('/slots','POST',{course_id:cid, day_of_week:s.day, start_time:s.time});
+      }
+    }
+  }
+  if (json.success) { closeCourseModal(); loadCourses(); }
+  else showMsg('courseMsg', json.error,'error');
+}
+
+async function editCourse(id) {
+  const course = allCourses.find(c => c.id===id);
+  if (course) openCourseModal(course);
+}
+
+async function deleteCourse(id) {
+  if (!confirm('¿Eliminar este curso? También se eliminarán sus horarios.')) return;
+  await api(`/courses/${id}`, 'DELETE');
+  loadCourses();
+}
+
+function closeCourseModal() { document.getElementById('courseModal').classList.remove('open'); }
+document.getElementById('courseModal').addEventListener('click', e => { if(e.target===document.getElementById('courseModal')) closeCourseModal(); });
+
+// ── REVIEWS ───────────────────────────────
+async function loadReviews() {
+  const json = await api('/reviews');
+  if (!json.success) return;
+  const reviews = json.data;
+  if (reviews.length === 0) { document.getElementById('reviewsTableWrap').innerHTML = '<div class="empty-state">No hay reseñas aún</div>'; return; }
+  document.getElementById('reviewsTableWrap').innerHTML = `
+    <table><thead><tr><th>Estudiante</th><th>Calificación</th><th>Comentario</th><th>Curso</th><th>Estado</th><th>Acciones</th></tr></thead>
+    <tbody>${reviews.map(r => `
+      <tr>
+        <td><strong>${r.student_name}</strong><br><small style="color:var(--ink-m)">${fmtDate(r.created_at)}</small></td>
+        <td><span class="stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</span></td>
+        <td style="max-width:260px">${r.comment}</td>
+        <td>${r.course_name||'—'}</td>
+        <td><span class="badge badge-${r.approved?'approved':'pending-r'}">${r.approved?'Aprobada':'Pendiente'}</span></td>
+        <td><div class="btn-gap">
+          ${!r.approved ? `<button class="btn btn-success btn-sm" onclick="approveReview(${r.id},true)">Aprobar</button>` : `<button class="btn btn-warn btn-sm" onclick="approveReview(${r.id},false)">Ocultar</button>`}
+          <button class="btn btn-danger btn-sm" onclick="deleteReview(${r.id})">Eliminar</button>
+        </div></td>
+      </tr>`).join('')}
+    </tbody></table>`;
+}
+async function approveReview(id, approved) {
+  await api(`/reviews/${id}`, 'PUT', {approved});
+  loadReviews(); loadDashboard();
+}
+async function deleteReview(id) {
+  if (!confirm('¿Eliminar esta reseña?')) return;
+  await api(`/reviews/${id}`, 'DELETE');
+  loadReviews();
+}
+
+// ── PROFILE ───────────────────────────────
+async function loadProfile() {
+  const json = await api('/profile');
+  if (!json.success) return;
+  const p = json.data;
+  document.getElementById('profileForm').innerHTML = `
+    <div class="form-grid" style="margin-bottom:16px">
+      <div class="form-group"><label>Nombre</label><input type="text" id="pName" value="${p.name||''}" /></div>
+      <div class="form-group"><label>Título profesional</label><input type="text" id="pTitle" value="${p.title||''}" /></div>
+      <div class="form-group full"><label>Frase principal (tagline)</label><input type="text" id="pTagline" value="${p.tagline||''}" /></div>
+      <div class="form-group full"><label>Biografía (párrafo 1)</label><textarea id="pBio">${p.bio||''}</textarea></div>
+      <div class="form-group full"><label>Biografía (párrafo 2)</label><textarea id="pBio2">${p.bio2||''}</textarea></div>
+      <div class="form-group"><label>Años de experiencia</label><input type="number" id="pYears" value="${p.years_exp||''}" /></div>
+      <div class="form-group"><label>Estudiantes totales</label><input type="number" id="pStudents" value="${p.students_count||''}" /></div>
+      <div class="form-group"><label>% Satisfacción</label><input type="number" id="pSatisfaction" value="${p.satisfaction||''}" max="100" /></div>
+      <div class="form-group"><label>Correo de contacto</label><input type="email" id="pEmail" value="${p.email||''}" /></div>
+      <div class="form-group"><label>Teléfono visible</label><input type="text" id="pPhone" value="${p.phone||''}" /></div>
+      <div class="form-group"><label>WhatsApp (solo números)</label><input type="text" id="pWhatsapp" value="${p.whatsapp||''}" /></div>
+      <div class="form-group"><label>Ubicación</label><input type="text" id="pLocation" value="${p.location||''}" /></div>
+      <div class="form-group"><label>Horario de atención</label><input type="text" id="pHours" value="${p.hours||''}" /></div>
+      <div class="form-group"><label>Instagram URL</label><input type="text" id="pInstagram" value="${p.instagram||''}" /></div>
+      <div class="form-group"><label>Facebook URL</label><input type="text" id="pFacebook" value="${p.facebook||''}" /></div>
+      <div class="form-group full"><label>Etiquetas / certificaciones (separadas por coma)</label><input type="text" id="pTags" value="${p.tags||''}" /></div>
+    </div>
+    <div class="form-msg" id="profileMsg"></div>
+    <div class="form-actions"><button class="btn btn-primary" onclick="saveProfile()">Guardar cambios</button></div>
+  `;
+}
+
+async function saveProfile() {
+  const data = {
+    name: v('pName'), title: v('pTitle'), tagline: v('pTagline'),
+    bio: v('pBio'), bio2: v('pBio2'),
+    years_exp: parseInt(v('pYears'))||0,
+    students_count: parseInt(v('pStudents'))||0,
+    satisfaction: parseInt(v('pSatisfaction'))||0,
+    email: v('pEmail'), phone: v('pPhone'), whatsapp: v('pWhatsapp'),
+    location: v('pLocation'), hours: v('pHours'),
+    instagram: v('pInstagram'), facebook: v('pFacebook'), tags: v('pTags')
+  };
+  const json = await api('/profile', 'PUT', data);
+  showMsg('profileMsg', json.success ? '✓ Perfil actualizado correctamente' : json.error, json.success?'success':'error');
+}
+
+// ── SECURITY ──────────────────────────────
+async function changePassword() {
+  const current = document.getElementById('pwCurrent').value;
+  const newPw = document.getElementById('pwNew').value;
+  const confirm = document.getElementById('pwConfirm').value;
+  if (newPw !== confirm) { showMsg('pwMsg','Las contraseñas no coinciden','error'); return; }
+  if (newPw.length < 6) { showMsg('pwMsg','Mínimo 6 caracteres','error'); return; }
+  const json = await api('/password', 'PUT', {current_password:current, new_password:newPw});
+  showMsg('pwMsg', json.success ? '✓ Contraseña actualizada' : json.error, json.success?'success':'error');
+  if (json.success) { document.getElementById('pwCurrent').value=''; document.getElementById('pwNew').value=''; document.getElementById('pwConfirm').value=''; }
+}
+
+// ── HELPERS ───────────────────────────────
+function v(id) { return document.getElementById(id)?.value || ''; }
+function showMsg(id, msg, type) {
+  const el = document.getElementById(id);
+  el.textContent = msg; el.className = `form-msg ${type}`;
+  if (type==='success') setTimeout(()=>{ el.textContent=''; el.className='form-msg'; },4000);
+}
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d+'T12:00:00').toLocaleDateString('es-CR',{day:'2-digit',month:'short',year:'numeric'});
+}
+function fmtTime(t) {
+  if (!t) return '—';
+  const [h,m] = t.split(':');
+  const hour = parseInt(h);
+  return `${hour>12?hour-12:hour||12}:${m} ${hour>=12?'pm':'am'}`;
+}
+function statusLabel(s) { return {pending:'Pendiente',confirmed:'Confirmada',cancelled:'Cancelada'}[s]||s; }
+</script>
+</body>
+</html>

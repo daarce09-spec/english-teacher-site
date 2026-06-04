@@ -121,4 +121,14 @@ router.post('/reviews', async (req, res) => {
   }
 });
 
+// GET public profile
+router.get('/profile', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM site_profile WHERE id=1');
+    res.json({ success: true, data: rows[0] });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 module.exports = router;

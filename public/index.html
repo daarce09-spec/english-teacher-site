@@ -50,27 +50,67 @@
     ══════════════════════════════════ */
     #splash {
       position: fixed; inset: 0; z-index: 999;
-      background: linear-gradient(135deg, #9EDEC0 0%, #C5B8E8 48%, #F5C4A0 100%);
+      background: #1E2045;
       display: flex; align-items: center; justify-content: center;
-      transition: opacity 0.6s ease, transform 0.6s ease;
+      flex-direction: column; gap: 0;
     }
+    #splash .splash-bg {
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, #9EDEC0 0%, #C5B8E8 48%, #F5C4A0 100%);
+      opacity: 0;
+      transition: opacity 1s ease;
+    }
+    #splash.show-grad .splash-bg { opacity: 1; }
     #splash.hide {
       opacity: 0;
-      transform: scale(1.08);
+      transition: opacity 0.7s ease;
       pointer-events: none;
     }
     .splash-logo {
-      animation: splashIn 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards;
+      position: relative; z-index: 2;
       opacity: 0;
+      transform: scale(0.65);
+      transition: opacity 0.6s cubic-bezier(0.34,1.4,0.64,1),
+                  transform 0.6s cubic-bezier(0.34,1.4,0.64,1),
+                  filter 0.8s ease;
+    }
+    .splash-logo.visible {
+      opacity: 1;
+      transform: scale(1);
     }
     .splash-logo img {
-      width: min(70vw, 480px);
+      width: min(72vw, 440px);
       height: auto;
-      filter: drop-shadow(0 16px 48px rgba(45,47,94,0.2));
+      filter: brightness(0) invert(1) drop-shadow(0 0 40px rgba(255,255,255,0.3));
+      transition: filter 1s ease;
     }
-    @keyframes splashIn {
-      0%   { opacity:0; transform: scale(0.7); }
-      100% { opacity:1; transform: scale(1); }
+    #splash.show-grad .splash-logo img {
+      filter: none drop-shadow(0 8px 32px rgba(45,47,94,0.2));
+    }
+    .splash-tagline {
+      position: relative; z-index: 2;
+      font-family: var(--sans);
+      font-size: clamp(0.75rem, 2.5vw, 0.9rem);
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0);
+      transition: color 0.8s ease 0.6s;
+      margin-top: 16px;
+    }
+    #splash.show-grad .splash-tagline {
+      color: rgba(30,32,69,0.6);
+    }
+    .splash-bar {
+      position: relative; z-index: 2;
+      width: 0; height: 2px;
+      background: rgba(255,255,255,0.5);
+      border-radius: 2px;
+      margin-top: 28px;
+      animation: barGrow 1s ease 0.5s forwards;
+    }
+    @keyframes barGrow {
+      to { width: min(60vw, 320px); }
     }
 
     /* ══════════════════════════════════
@@ -391,9 +431,12 @@
 
 <!-- ══ SPLASH ══ -->
 <div id="splash">
-  <div class="splash-logo">
+  <div class="splash-bg"></div>
+  <div class="splash-logo" id="splashLogo">
     <img src="/images/logo.png" alt="Let's Talk Language Studio" />
   </div>
+  <div class="splash-tagline">Language Studio · Costa Rica</div>
+  <div class="splash-bar"></div>
 </div>
 
 <div id="page">
@@ -549,13 +592,24 @@
 <script>
 // ── SPLASH ─────────────────────────────────
 window.addEventListener('load', () => {
+  const splash = document.getElementById('splash');
+  const logo = document.getElementById('splashLogo');
+  const page = document.getElementById('page');
+
+  // Step 1: logo appears (white on dark)
+  setTimeout(() => { logo.classList.add('visible'); }, 100);
+
+  // Step 2: gradient morphs in, logo recolors
+  setTimeout(() => { splash.classList.add('show-grad'); }, 900);
+
+  // Step 3: page reveals, splash fades
   setTimeout(() => {
-    document.getElementById('splash').classList.add('hide');
-    document.getElementById('page').classList.add('visible');
-    setTimeout(() => {
-      document.getElementById('splash').style.display = 'none';
-    }, 700);
-  }, 1400);
+    page.classList.add('visible');
+    splash.classList.add('hide');
+  }, 2000);
+
+  // Step 4: remove splash from DOM
+  setTimeout(() => { splash.style.display = 'none'; }, 2800);
 });
 
 // ── NAV ────────────────────────────────────

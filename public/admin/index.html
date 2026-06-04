@@ -716,11 +716,14 @@ async function saveProfile() {
 }
 
 async function changePassword() {
-  const current=document.getElementById('pwCurrent').value;
-  const newPw=document.getElementById('pwNew').value;
-  const confirm=document.getElementById('pwConfirm').value;
-  if (newPw!==confirm) { showMsg('pwMsg','Las contraseñas no coinciden','error'); return; }
+  const current=document.getElementById('pwCurrent').value.trim();
+  const newPw=document.getElementById('pwNew').value.trim();
+  const confirm=document.getElementById('pwConfirm').value.trim();
+  if (!current) { showMsg('pwMsg','Ingresá tu contraseña actual','error'); return; }
+  if (!newPw) { showMsg('pwMsg','Ingresá la nueva contraseña','error'); return; }
   if (newPw.length<6) { showMsg('pwMsg','Mínimo 6 caracteres','error'); return; }
+  if (newPw!==confirm) { showMsg('pwMsg','Las contraseñas no coinciden','error'); return; }
+  if (current===newPw) { showMsg('pwMsg','La nueva contraseña debe ser diferente a la actual','error'); return; }
   const json = await api('/password','PUT',{current_password:current,new_password:newPw});
   showMsg('pwMsg', json.success?'✓ Contraseña actualizada':json.error, json.success?'success':'error');
   if (json.success) { ['pwCurrent','pwNew','pwConfirm'].forEach(id=>document.getElementById(id).value=''); }

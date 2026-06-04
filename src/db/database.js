@@ -19,22 +19,22 @@ async function initDB() {
 
       CREATE TABLE IF NOT EXISTS site_profile (
         id INTEGER PRIMARY KEY DEFAULT 1,
-        name VARCHAR(200) DEFAULT 'Sofia Reyes',
-        title VARCHAR(200) DEFAULT 'Profesora Certificada de Inglés',
-        tagline VARCHAR(300) DEFAULT 'Aprende inglés con método, confianza y resultados reales.',
-        bio TEXT DEFAULT 'Soy Sofia, profesora de inglés con certificación TEFL y más de 8 años de experiencia.',
-        bio2 TEXT DEFAULT 'Mi enfoque combina gramática sólida con práctica conversacional intensa.',
-        years_exp INTEGER DEFAULT 8,
-        students_count INTEGER DEFAULT 500,
-        satisfaction INTEGER DEFAULT 98,
-        email VARCHAR(200) DEFAULT 'sofia@inglesconsofia.com',
+        name VARCHAR(200) DEFAULT 'Dianne Herrera Gamboa',
+        title VARCHAR(200) DEFAULT 'Profesora de Inglés',
+        tagline VARCHAR(300) DEFAULT 'Clases de inglés personalizadas para todos los niveles. Presencial y virtual, a tu ritmo.',
+        bio TEXT DEFAULT 'Soy profesora de inglés apasionada por hacer que aprender un idioma sea una experiencia accesible, práctica y divertida.',
+        bio2 TEXT DEFAULT 'Ofrezco clases adaptadas a tus objetivos, ya sea que quieras mejorar tu conversación, prepararte para el trabajo, viajar con confianza, o simplemente empezar desde cero.',
+        years_exp INTEGER DEFAULT 1,
+        students_count INTEGER DEFAULT 0,
+        satisfaction INTEGER DEFAULT 100,
+        email VARCHAR(200) DEFAULT 'dianne@email.com',
         phone VARCHAR(50) DEFAULT '+506 8888-8888',
         whatsapp VARCHAR(30) DEFAULT '50688888888',
-        location VARCHAR(200) DEFAULT 'San José, Costa Rica',
+        location VARCHAR(200) DEFAULT 'Costa Rica',
         hours VARCHAR(200) DEFAULT 'Lunes a Sábado · 7am – 8pm',
         instagram VARCHAR(200) DEFAULT '#',
         facebook VARCHAR(200) DEFAULT '#',
-        tags TEXT DEFAULT 'TEFL Certified,Cambridge CELTA,Nivel C2,TOEFL Prep,Business English'
+        tags TEXT DEFAULT 'Presencial,Virtual,Clases individuales,Grupos pequeños,Niños y adultos'
       );
 
       CREATE TABLE IF NOT EXISTS courses (
@@ -81,7 +81,6 @@ async function initDB() {
       );
     `);
 
-    // Seed admin user if not exists
     const { rows: admins } = await client.query('SELECT COUNT(*) FROM admin_users');
     if (parseInt(admins[0].count) === 0) {
       const hash = await bcrypt.hash(process.env.ADMIN_PASSWORD || 'admin1234', 10);
@@ -89,26 +88,23 @@ async function initDB() {
         'INSERT INTO admin_users (username, password_hash) VALUES ($1, $2)',
         [process.env.ADMIN_USERNAME || 'admin', hash]
       );
-      console.log('✅ Admin user created. User: admin / Pass: admin1234 (cámbiala en variables de entorno)');
     }
 
-    // Seed profile if not exists
     const { rows: profile } = await client.query('SELECT COUNT(*) FROM site_profile');
     if (parseInt(profile[0].count) === 0) {
       await client.query('INSERT INTO site_profile (id) VALUES (1)');
     }
 
-    // Seed courses if empty
     const { rows: courses } = await client.query('SELECT COUNT(*) FROM courses');
     if (parseInt(courses[0].count) === 0) {
       await client.query(`
         INSERT INTO courses (name, description, level, duration_minutes, price, max_students) VALUES
-        ('Inglés General', 'Clases personalizadas para mejorar tu inglés en todas las áreas: conversación, gramática y escritura.', 'Todos los niveles', 60, 25000, 1),
-        ('Business English', 'Inglés enfocado en el mundo laboral: presentaciones, correos, reuniones y vocabulario corporativo.', 'Intermedio - Avanzado', 60, 30000, 1),
-        ('Inglés para Viajes', 'Aprende el inglés esencial para moverte con confianza en el extranjero.', 'Básico - Intermedio', 60, 22000, 3),
-        ('Preparación TOEFL/TOEIC', 'Curso intensivo para obtener la certificación que necesitas. Estrategias y práctica de examen.', 'Intermedio - Avanzado', 90, 35000, 1),
-        ('Taller de Conversación', 'Sesión grupal para practicar fluidez y perder el miedo a hablar en inglés.', 'Básico - Intermedio', 60, 15000, 6),
-        ('Inglés para Niños', 'Clases dinámicas y divertidas adaptadas para niños de 6 a 12 años.', 'Principiante', 45, 20000, 1);
+        ('Inglés Individual', 'Clase 100% personalizada según tus objetivos y nivel. Ideal para avanzar rápido con atención exclusiva.', 'Todos los niveles', 60, 0, 1),
+        ('Inglés Grupal', 'Clases en grupos pequeños (máx. 4 personas). Aprendé con otros y practicá la conversación en un ambiente dinámico.', 'Todos los niveles', 60, 0, 4),
+        ('Inglés para Niños', 'Clases dinámicas y divertidas para niños de 5 a 12 años. Metodología lúdica adaptada a su edad.', 'Principiante', 45, 0, 1),
+        ('Inglés Conversacional', 'Enfocado en perder el miedo a hablar. Practicamos situaciones reales: trabajo, viajes, vida cotidiana.', 'Básico - Intermedio', 60, 0, 3),
+        ('Business English', 'Inglés para el entorno laboral: correos, reuniones, presentaciones y vocabulario corporativo.', 'Intermedio - Avanzado', 60, 0, 1),
+        ('Inglés desde Cero', 'Para quienes nunca han estudiado inglés o quieren retomar desde los fundamentos. Ritmo tranquilo y práctico.', 'Principiante', 60, 0, 2);
       `);
 
       await client.query(`
@@ -116,22 +112,11 @@ async function initDB() {
         (1,1,'08:00'),(1,1,'10:00'),(1,1,'15:00'),(1,1,'17:00'),
         (1,3,'08:00'),(1,3,'10:00'),(1,3,'15:00'),(1,3,'17:00'),
         (1,5,'09:00'),(1,5,'11:00'),
-        (2,2,'07:00'),(2,2,'12:00'),(2,2,'18:00'),
-        (2,4,'07:00'),(2,4,'12:00'),(2,4,'18:00'),
-        (3,6,'09:00'),(3,6,'11:00'),
-        (4,1,'19:00'),(4,3,'19:00'),(4,5,'19:00'),
-        (5,6,'10:00'),
-        (6,2,'16:00'),(6,4,'16:00');
-      `);
-
-      await client.query(`
-        INSERT INTO reviews (student_name, rating, comment, course_name, approved) VALUES
-        ('Andrea Mora', 5, 'Excelente profesora. Su método es muy claro y siempre viene bien preparada. En 3 meses mejoré mi nivel notablemente.', 'Business English', true),
-        ('Carlos Jiménez', 5, 'Las clases de conversación son increíbles. Ahora me siento seguro hablando en reuniones con clientes extranjeros.', 'Business English', true),
-        ('Valeria Soto', 5, 'Pasé mi TOEFL con 97 puntos. Sin su ayuda no lo habría logrado. ¡Mil gracias!', 'Preparación TOEFL/TOEIC', true),
-        ('Luis Fernández', 4, 'El taller grupal está muy bien estructurado. Se aprende mucho y se conoce gente interesante.', 'Taller de Conversación', true),
-        ('Marcela Rodríguez', 5, 'Mi hija de 8 años ama sus clases. La metodología con niños es espectacular, muy paciente y creativa.', 'Inglés para Niños', true),
-        ('Diego Vargas', 5, 'Viajé a Canadá por trabajo y pude comunicarme perfectamente. Las clases de viajes son prácticas y útiles.', 'Inglés para Viajes', true);
+        (2,2,'09:00'),(2,2,'16:00'),(2,4,'09:00'),(2,4,'16:00'),
+        (3,2,'15:00'),(3,2,'16:00'),(3,4,'15:00'),(3,4,'16:00'),(3,6,'10:00'),
+        (4,6,'09:00'),(4,6,'11:00'),
+        (5,1,'19:00'),(5,3,'19:00'),(5,5,'19:00'),
+        (6,1,'08:00'),(6,3,'08:00'),(6,5,'08:00');
       `);
     }
 

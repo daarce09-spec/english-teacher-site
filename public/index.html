@@ -18,13 +18,14 @@
       --white-s:rgba(255,255,255,0.75);
       --white-b:rgba(255,255,255,0.92);
       --border: rgba(255,255,255,0.5);
+      --grad:   linear-gradient(135deg, #9EDEC0 0%, #C5B8E8 48%, #F5C4A0 100%);
       --sans:   'Nunito', system-ui, sans-serif;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
     body {
       font-family: var(--sans);
-      background: linear-gradient(135deg, #9EDEC0 0%, #C5B8E8 48%, #F5C4A0 100%) fixed;
+      background: var(--grad);
       background-attachment: fixed;
       color: var(--ink);
       overflow-x: hidden;
@@ -34,27 +35,55 @@
     button { font-family: var(--sans); cursor: pointer; }
     input, select { font-family: var(--sans); }
 
-    .divider {
-      height: 1px;
-      background: linear-gradient(to right, transparent, rgba(255,255,255,0.5), transparent);
-      margin: 0 40px;
+    /* ══════════════════════════════════
+       SPLASH SCREEN
+    ══════════════════════════════════ */
+    #splash {
+      position: fixed; inset: 0; z-index: 999;
+      background: var(--grad);
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    #splash.hide {
+      opacity: 0;
+      transform: scale(1.08);
+      pointer-events: none;
+    }
+    .splash-logo {
+      animation: splashIn 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards;
+      opacity: 0;
+    }
+    .splash-logo img {
+      width: min(55vw, 480px);
+      height: auto;
+      filter: drop-shadow(0 16px 48px rgba(45,47,94,0.2));
+    }
+    @keyframes splashIn {
+      0%   { opacity:0; transform: scale(0.7); }
+      100% { opacity:1; transform: scale(1); }
     }
 
-    /* ── NAV ── */
+    /* ══════════════════════════════════
+       PAGE CONTENT — animate in
+    ══════════════════════════════════ */
+    #page { opacity: 0; transition: opacity 0.5s ease 0.1s; }
+    #page.visible { opacity: 1; }
+
+    /* ══════════════════════════════════
+       NAV
+    ══════════════════════════════════ */
     nav {
       position: fixed; top: 0; left: 0; right: 0; z-index: 100;
       height: 66px; padding: 0 48px;
       display: flex; align-items: center; justify-content: space-between;
-      transition: background 0.3s, backdrop-filter 0.3s;
+      transition: background 0.3s;
     }
     nav.scrolled {
       background: rgba(158,222,192,0.3);
       backdrop-filter: blur(16px);
       border-bottom: 1px solid rgba(255,255,255,0.3);
     }
-    .nav-logo img {
-      height: 60px; width: auto;
-    }
+    .nav-logo img { height: 48px; width: auto; }
     .nav-right { display: flex; align-items: center; gap: 28px; }
     .nav-right a { font-size: 0.85rem; font-weight: 700; color: var(--ink); transition: color 0.2s; }
     .nav-right a:hover { color: var(--navy); }
@@ -63,139 +92,103 @@
       padding: 9px 22px; border-radius: 50px; font-weight: 800;
       font-size: 0.82rem;
       box-shadow: 0 4px 16px rgba(45,47,94,0.3);
-      transition: transform 0.2s, box-shadow 0.2s !important;
+      transition: transform 0.2s !important;
     }
-    .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(45,47,94,0.4) !important; }
+    .nav-cta:hover { transform: translateY(-1px); }
 
-    /* ── HERO ── */
+    /* ══════════════════════════════════
+       HERO — centrado, logo protagonista
+    ══════════════════════════════════ */
     #hero {
-      height: 100vh; padding-top: 66px;
-      display: grid; grid-template-columns: 55% 45%;
-      overflow: hidden;
+      min-height: 100vh; padding-top: 66px;
+      display: flex; align-items: center; justify-content: center;
     }
-    .hero-left {
-      display: flex; flex-direction: column; justify-content: center;
-      padding: 28px 40px 28px 60px; gap: 12px;
+    .hero-inner {
+      display: grid; grid-template-columns: 1fr 1fr;
+      width: 100%; max-width: 1200px;
+      padding: 0 60px; gap: 48px; align-items: center;
     }
-    .hero-eyebrow {
-      display: inline-block;
-      font-size: 0.7rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase;
-      color: var(--green); background: var(--white-b);
-      padding: 5px 14px; border-radius: 50px;
-      border: 1.5px solid var(--border);
-      align-self: flex-start;
-    }
-    .hero-logo-big img {
-      width: 100%;
-      max-width: 480px;
-      height: auto;
-      display: block;
+    .hero-left { display: flex; flex-direction: column; gap: 20px; }
+    .hero-logo-wrap img {
+      width: 100%; max-width: 500px;
+      height: auto; display: block;
+      filter: drop-shadow(0 8px 32px rgba(45,47,94,0.18));
     }
     .hero-sub {
-      font-size: 1rem; font-weight: 500; color: var(--ink-s);
-      line-height: 1.8; max-width: 380px;
+      font-size: 1.05rem; font-weight: 500; color: var(--ink-s);
+      line-height: 1.8; max-width: 420px;
     }
-    .hero-pills { display: flex; flex-wrap: wrap; gap: 7px; }
+    .hero-pills { display: flex; flex-wrap: wrap; gap: 8px; }
     .pill {
-      font-size: 0.78rem; font-weight: 600; color: var(--ink);
-      background: var(--white); padding: 5px 13px; border-radius: 50px;
+      font-size: 0.8rem; font-weight: 600; color: var(--ink);
+      background: var(--white); padding: 6px 14px; border-radius: 50px;
       border: 1.5px solid var(--border);
     }
     .hero-btns { display: flex; gap: 12px; flex-wrap: wrap; }
     .btn-solid {
-      display: inline-block;
-      background: var(--navy); color: #fff;
-      padding: 13px 30px; border-radius: 50px;
-      font-size: 0.88rem; font-weight: 800; border: none;
+      display: inline-block; background: var(--navy); color: #fff;
+      padding: 14px 32px; border-radius: 50px;
+      font-size: 0.9rem; font-weight: 800; border: none;
       box-shadow: 0 6px 20px rgba(45,47,94,0.35);
       transition: transform 0.2s, box-shadow 0.2s;
     }
     .btn-solid:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(45,47,94,0.45); }
     .btn-ghost {
-      display: inline-block;
-      background: var(--white); color: var(--ink);
-      padding: 12px 26px; border-radius: 50px;
-      font-size: 0.88rem; font-weight: 700;
-      border: 1.5px solid var(--border);
-      transition: background 0.2s;
+      display: inline-block; background: var(--white); color: var(--ink);
+      padding: 13px 28px; border-radius: 50px;
+      font-size: 0.9rem; font-weight: 700;
+      border: 1.5px solid var(--border); transition: background 0.2s;
     }
     .btn-ghost:hover { background: var(--white-b); }
 
-    .hero-right {
-      display: flex; align-items: center; justify-content: center;
-      padding: 28px 40px; position: relative;
+    /* Hero right — info cards en lugar de foto */
+    .hero-right { display: flex; flex-direction: column; gap: 14px; }
+    .info-card {
+      background: var(--white); border: 1.5px solid var(--border);
+      border-radius: 18px; padding: 20px 24px;
+      backdrop-filter: blur(10px);
+      display: flex; align-items: center; gap: 16px;
+      transition: transform 0.2s, background 0.2s;
     }
-    .photo-wrap { position: relative; display: flex; flex-direction: column; align-items: center; gap: 14px; }
-    .blob {
-      width: clamp(200px, 22vw, 300px); height: clamp(240px, 26vw, 360px);
-      border-radius: 50% 50% 46% 46%;
-      background: var(--white);
-      border: 2.5px solid var(--white-s);
-      display: flex; align-items: center; justify-content: center;
-      overflow: hidden;
-      box-shadow: 0 20px 50px rgba(45,47,94,0.12);
-      animation: blobMove 7s ease-in-out infinite;
-    }
-    @keyframes blobMove {
-      0%,100% { border-radius: 50% 50% 46% 46%; }
-      50%      { border-radius: 46% 54% 50% 50%; }
-    }
-    .blob img { width:100%; height:100%; object-fit:cover; object-position:top; }
-    .blob.no-img::after {
-      content: 'DH';
-      font-size: 3rem; font-style: italic; font-weight: 400;
-      color: rgba(45,47,94,0.3);
-    }
-    .teacher-badge {
-      background: var(--white-b); color: var(--navy);
-      font-size: 0.75rem; font-weight: 700;
-      padding: 8px 18px; border-radius: 50px;
-      border: 1.5px solid var(--border);
-      box-shadow: 0 4px 14px rgba(0,0,0,0.06);
-      white-space: nowrap;
+    .info-card:hover { transform: translateX(4px); background: var(--white-s); }
+    .info-icon { font-size: 1.8rem; flex-shrink: 0; }
+    .info-title { font-size: 0.95rem; font-weight: 800; color: var(--navy); margin-bottom: 3px; }
+    .info-desc { font-size: 0.8rem; color: var(--ink-s); font-weight: 500; line-height: 1.5; }
+
+    /* ══════════════════════════════════
+       DIVIDER
+    ══════════════════════════════════ */
+    .divider {
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(255,255,255,0.5), transparent);
+      margin: 0 60px;
     }
 
-    /* ── COURSES ── */
+    /* ══════════════════════════════════
+       COURSES
+    ══════════════════════════════════ */
     #courses { padding: 80px 60px; }
     .sec-label {
       font-size: 0.7rem; font-weight: 800; letter-spacing: 0.15em;
-      text-transform: uppercase; color: var(--green);
-      display: block; margin-bottom: 8px;
+      text-transform: uppercase; color: var(--green); display: block; margin-bottom: 8px;
     }
-    .sec-title {
-      font-size: clamp(1.6rem, 2.5vw, 2.2rem);
-      font-weight: 800; color: var(--navy); margin-bottom: 32px;
-    }
-    .courses-grid {
-      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
-    }
+    .sec-title { font-size: clamp(1.6rem, 2.5vw, 2.2rem); font-weight: 800; color: var(--navy); margin-bottom: 32px; }
+    .courses-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
     .course-card {
       background: var(--white); border: 1.5px solid var(--border);
-      border-radius: 20px; padding: 22px;
-      backdrop-filter: blur(10px);
+      border-radius: 20px; padding: 22px; backdrop-filter: blur(10px);
       display: flex; flex-direction: column;
       transition: transform 0.22s, box-shadow 0.22s, background 0.22s;
     }
-    .course-card:hover {
-      transform: translateY(-4px);
-      background: var(--white-s);
-      box-shadow: 0 12px 36px rgba(45,47,94,0.12);
-    }
+    .course-card:hover { transform: translateY(-4px); background: var(--white-s); box-shadow: 0 12px 36px rgba(45,47,94,0.12); }
     .course-icon { font-size: 1.8rem; margin-bottom: 10px; }
     .course-tag {
       font-size: 0.68rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
       color: var(--green); background: rgba(30,92,64,0.1);
-      padding: 3px 10px; border-radius: 50px;
-      align-self: flex-start; margin-bottom: 10px;
+      padding: 3px 10px; border-radius: 50px; align-self: flex-start; margin-bottom: 10px;
     }
-    .course-card h3 {
-      font-size: 1.1rem; font-weight: 800;
-      color: var(--navy); margin-bottom: 8px;
-    }
-    .course-card p {
-      font-size: 0.82rem; color: var(--ink-s); line-height: 1.65;
-      flex: 1; margin-bottom: 16px;
-    }
+    .course-card h3 { font-size: 1.1rem; font-weight: 800; color: var(--navy); margin-bottom: 8px; }
+    .course-card p { font-size: 0.82rem; color: var(--ink-s); line-height: 1.65; flex: 1; margin-bottom: 16px; }
     .course-foot { display: flex; align-items: center; justify-content: space-between; }
     .course-price { font-size: 0.82rem; font-weight: 700; color: var(--ink-s); }
     .btn-book {
@@ -206,7 +199,9 @@
     }
     .btn-book:hover { background: var(--navy-d); transform: scale(1.03); }
 
-    /* ── BOOKING ── */
+    /* ══════════════════════════════════
+       BOOKING
+    ══════════════════════════════════ */
     #booking { padding: 80px 60px; }
     .booking-wrap { display: grid; grid-template-columns: 1fr 1.6fr; gap: 48px; align-items: start; }
     .booking-intro .sec-title { margin-bottom: 12px; }
@@ -219,20 +214,17 @@
       font-size: 0.85rem; font-weight: 600; color: var(--ink);
     }
     .c-icon { font-size: 1rem; width: 22px; text-align: center; }
-
     .booking-card {
       background: var(--white); border: 1.5px solid var(--border);
-      border-radius: 22px; padding: 30px;
-      backdrop-filter: blur(12px);
+      border-radius: 22px; padding: 30px; backdrop-filter: blur(12px);
       box-shadow: 0 8px 32px rgba(45,47,94,0.08);
     }
     .step { display: none; animation: fadeUp 0.3s ease; }
     .step.active { display: block; }
     @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
     .step-title {
-      font-size: 1.1rem; font-weight: 800;
-      color: var(--navy); margin-bottom: 18px;
-      display: flex; align-items: center; gap: 10px;
+      font-size: 1.1rem; font-weight: 800; color: var(--navy);
+      margin-bottom: 18px; display: flex; align-items: center; gap: 10px;
     }
     .step-num {
       width: 26px; height: 26px; border-radius: 50%;
@@ -266,16 +258,14 @@
     .summary-bar {
       background: var(--white-s); border-left: 3px solid var(--navy);
       border-radius: 0 10px 10px 0; padding: 10px 14px;
-      font-size: 0.82rem; font-weight: 700; color: var(--ink);
-      margin-bottom: 16px;
+      font-size: 0.82rem; font-weight: 700; color: var(--ink); margin-bottom: 16px;
     }
     .form-err { font-size: 0.78rem; color: #b83232; min-height: 16px; margin-bottom: 6px; font-weight: 600; }
     .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 6px; }
     .btn-back {
       background: var(--white-s); color: var(--ink-s);
       border: 1.5px solid var(--border); padding: 9px 20px;
-      border-radius: 50px; font-size: 0.82rem; font-weight: 700;
-      transition: background 0.2s;
+      border-radius: 50px; font-size: 0.82rem; font-weight: 700; transition: background 0.2s;
     }
     .btn-back:hover { background: var(--white-b); }
     .btn-confirm {
@@ -287,22 +277,24 @@
     }
     .btn-confirm:hover { background: var(--navy-d); transform: translateY(-1px); }
 
-    /* ── FOOTER ── */
+    /* ══════════════════════════════════
+       FOOTER
+    ══════════════════════════════════ */
     footer {
       padding: 24px 60px;
-      background: rgba(20,22,50,0.88);
-      backdrop-filter: blur(16px);
+      background: rgba(20,22,50,0.88); backdrop-filter: blur(16px);
       border-top: 1px solid rgba(255,255,255,0.1);
-      display: flex; align-items: center; justify-content: space-between;
-      flex-wrap: wrap; gap: 14px;
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;
     }
-    .footer-logo img { height: 52px; width: auto; filter: brightness(0) invert(1); opacity: 0.85; }
+    .footer-logo img { height: 44px; width: auto; filter: brightness(0) invert(1); opacity: 0.8; }
     .footer-copy { font-size: 0.75rem; color: rgba(255,255,255,0.3); }
     .footer-links { display: flex; gap: 20px; }
     .footer-links a { font-size: 0.78rem; color: rgba(255,255,255,0.45); font-weight: 600; transition: color 0.2s; }
     .footer-links a:hover { color: rgba(255,255,255,0.85); }
 
-    /* ── MODAL ── */
+    /* ══════════════════════════════════
+       MODAL
+    ══════════════════════════════════ */
     .overlay {
       display: none; position: fixed; inset: 0;
       background: rgba(20,22,50,0.5); backdrop-filter: blur(6px);
@@ -311,18 +303,15 @@
     .overlay.open { display: flex; }
     .modal {
       background: var(--white-b); border: 2px solid var(--border);
-      backdrop-filter: blur(20px);
-      border-radius: 24px; padding: 40px 34px;
+      backdrop-filter: blur(20px); border-radius: 24px; padding: 40px 34px;
       max-width: 400px; width: 100%; text-align: center;
-      box-shadow: 0 24px 60px rgba(45,47,94,0.2);
       animation: popIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
     }
     @keyframes popIn { from{opacity:0;transform:scale(0.86)} to{opacity:1;transform:scale(1)} }
     .modal-icon {
       width: 54px; height: 54px; border-radius: 50%;
       background: var(--navy); color: #fff; font-size: 1.5rem;
-      display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 16px;
+      display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;
     }
     .modal h3 { font-size: 1.5rem; font-weight: 800; color: var(--navy); margin-bottom: 16px; }
     .modal-info {
@@ -333,11 +322,12 @@
     }
     .modal-note { font-size: 0.78rem; color: var(--ink-m); margin-bottom: 20px; font-weight: 500; }
 
-    /* ── RESPONSIVE ── */
+    /* ══════════════════════════════════
+       RESPONSIVE
+    ══════════════════════════════════ */
     @media(max-width:900px){
-      #hero { grid-template-columns:1fr; min-height:auto; }
-      .hero-left { padding:44px 28px 32px; order:2; gap:14px; }
-      .hero-right { min-height:280px; order:1; padding:40px 20px; }
+      .hero-inner { grid-template-columns:1fr; padding:0 28px; }
+      .hero-right { display:none; }
       #courses { padding:60px 28px; }
       .courses-grid { grid-template-columns:1fr 1fr; }
       #booking { padding:60px 28px; }
@@ -353,13 +343,19 @@
       .booking-card { padding:22px 18px; }
       .form-row { grid-template-columns:1fr; }
       .form-actions { flex-direction:column-reverse; }
-      .btn-back,.btn-confirm { width:100%; text-align:center; }
-      .blob { width:180px; height:215px; }
-      .hero-logo-big img { height:180px; }
     }
   </style>
 </head>
 <body>
+
+<!-- ══ SPLASH ══ -->
+<div id="splash">
+  <div class="splash-logo">
+    <img src="/images/logo.png" alt="Let's Talk Language Studio" />
+  </div>
+</div>
+
+<div id="page">
 
 <nav id="nav">
   <a href="#hero" class="nav-logo">
@@ -372,31 +368,53 @@
 </nav>
 
 <section id="hero">
-  <div class="hero-left">
-    <div class="hero-logo-big">
-      <img src="/images/logo.png" alt="Let's Talk Language Studio" />
-    </div>
-    <p class="hero-sub">Aprende inglés con confianza. Clases personalizadas, presenciales y virtuales para todos los niveles.</p>
-    <div class="hero-pills">
-      <span class="pill">👤 Individual</span>
-      <span class="pill">👥 Grupal</span>
-      <span class="pill">🧒 Niños</span>
-      <span class="pill">💻 Virtual</span>
-      <span class="pill">🏠 Presencial</span>
-    </div>
-    <div class="hero-btns">
-      <a href="#booking" class="btn-solid">Agenda tu clase ahora</a>
-      <a href="#courses" class="btn-ghost">Ver cursos</a>
-    </div>
-  </div>
-  <div class="hero-right">
-    <div class="photo-wrap">
-      <div class="blob no-img" id="photoBlob">
-        <img src="/images/profile.jpg" alt="Dianne Herrera"
-          onload="this.parentElement.classList.remove('no-img')"
-          onerror="this.style.display='none'" />
+  <div class="hero-inner">
+    <div class="hero-left">
+      <div class="hero-logo-wrap">
+        <img src="/images/logo.png" alt="Let's Talk Language Studio" />
       </div>
-      <div class="teacher-badge">Dianne Herrera · Profesora de Inglés</div>
+      <p class="hero-sub">Aprende inglés con confianza. Clases personalizadas, presenciales y virtuales para todos los niveles.</p>
+      <div class="hero-pills">
+        <span class="pill">👤 Individual</span>
+        <span class="pill">👥 Grupal</span>
+        <span class="pill">🧒 Niños</span>
+        <span class="pill">💻 Virtual</span>
+        <span class="pill">🏠 Presencial</span>
+      </div>
+      <div class="hero-btns">
+        <a href="#booking" class="btn-solid">Agenda tu clase ahora</a>
+        <a href="#courses" class="btn-ghost">Ver cursos</a>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="info-card">
+        <div class="info-icon">🎯</div>
+        <div>
+          <div class="info-title">Clases 100% personalizadas</div>
+          <div class="info-desc">Adaptamos el contenido a tus objetivos y nivel actual.</div>
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="info-icon">🏠💻</div>
+        <div>
+          <div class="info-title">Presencial y Virtual</div>
+          <div class="info-desc">Clases en persona o por Zoom, tú decides cómo aprender.</div>
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="info-icon">🧒👨‍👩‍👧</div>
+        <div>
+          <div class="info-title">Para todas las edades</div>
+          <div class="info-desc">Niños, jóvenes y adultos. Grupos pequeños e individuales.</div>
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="info-icon">📅</div>
+        <div>
+          <div class="info-title">Horarios flexibles</div>
+          <div class="info-desc">Agenda tu clase en el día y hora que más te convenga.</div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -418,7 +436,7 @@
     <div class="booking-intro">
       <span class="sec-label">Reserva tu lugar</span>
       <h2 class="sec-title">Agenda tu clase</h2>
-      <p>Elige el curso, la fecha y el horario que mejor se adapte a tu día. Dianne te confirma a la brevedad.</p>
+      <p>Elige el curso, la fecha y el horario. Te confirmamos a la brevedad. ¡Con gusto te esperamos!</p>
       <div class="contact-list">
         <div class="contact-item"><span class="c-icon">📱</span>+506 8888-8888</div>
         <div class="contact-item"><span class="c-icon">📧</span>dianne@letstalk.cr</div>
@@ -475,31 +493,48 @@
   </div>
 </footer>
 
+</div><!-- #page -->
+
 <div class="overlay" id="overlay">
   <div class="modal">
     <div class="modal-icon">✓</div>
     <h3>¡Reserva confirmada!</h3>
     <div class="modal-info" id="modalInfo"></div>
-    <p class="modal-note">Dianne te contactará pronto para confirmar los detalles. ¡Nos vemos!</p>
+    <p class="modal-note">Dianne te contactará pronto para confirmar los detalles.</p>
     <button class="btn-confirm" id="modalClose" style="width:100%">Perfecto</button>
   </div>
 </div>
 
 <script>
-const API='/api'; let courses=[],selSlot=null,selCourseId=null;
-const ICONS=['📚','💬','🧒','🗣️','💼','✏️'];
-
-window.addEventListener('scroll',()=>{
-  document.getElementById('nav').classList.toggle('scrolled',window.scrollY>50);
+// ── SPLASH ─────────────────────────────────
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    document.getElementById('splash').classList.add('hide');
+    document.getElementById('page').classList.add('visible');
+    setTimeout(() => {
+      document.getElementById('splash').style.display = 'none';
+    }, 700);
+  }, 1400);
 });
 
-const di=document.getElementById('bookDate');
-const tom=new Date(); tom.setDate(tom.getDate()+1);
-di.min=tom.toISOString().split('T')[0];
+// ── NAV ────────────────────────────────────
+window.addEventListener('scroll', () => {
+  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 50);
+});
+
+// ── DATE ──────────────────────────────────
+const di = document.getElementById('bookDate');
+const tom = new Date(); tom.setDate(tom.getDate() + 1);
+di.min = tom.toISOString().split('T')[0];
+
+// ── COURSES ───────────────────────────────
+const API = '/api';
+let courses = [], selSlot = null, selCourseId = null;
+const ICONS = ['📚','💬','🧒','🗣️','💼','✏️'];
 
 fetch(`${API}/courses`).then(r=>r.json()).then(j=>{
-  courses=j.data;
-  document.getElementById('coursesGrid').innerHTML=courses.map((c,i)=>`
+  courses = j.data;
+  document.getElementById('coursesGrid').innerHTML = courses.map((c,i) => `
     <div class="course-card">
       <div class="course-icon">${ICONS[i]||'📖'}</div>
       <span class="course-tag">${c.level||'Todos los niveles'}</span>
@@ -510,99 +545,104 @@ fetch(`${API}/courses`).then(r=>r.json()).then(j=>{
         <button class="btn-book" onclick="goBook(${c.id})">Agendar →</button>
       </div>
     </div>`).join('');
-  const sel=document.getElementById('bookCourse');
-  courses.forEach(c=>{
-    const o=document.createElement('option');
-    o.value=c.id; o.textContent=c.name; sel.appendChild(o);
+  const sel = document.getElementById('bookCourse');
+  courses.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c.id; o.textContent = c.name; sel.appendChild(o);
   });
 }).catch(()=>{});
 
-function goBook(id){
-  document.getElementById('bookCourse').value=id;
+function goBook(id) {
+  document.getElementById('bookCourse').value = id;
   document.getElementById('booking').scrollIntoView({behavior:'smooth'});
-  setTimeout(()=>document.getElementById('bookDate').focus(),600);
+  setTimeout(() => document.getElementById('bookDate').focus(), 600);
 }
 
-async function loadSlots(){
-  const cid=document.getElementById('bookCourse').value;
-  const date=document.getElementById('bookDate').value;
-  selSlot=null;
-  document.getElementById('slotsWrap').style.display='none';
-  document.getElementById('noSlots').style.display='none';
-  if(!cid||!date)return;
-  selCourseId=cid;
-  const r=await fetch(`${API}/slots?course_id=${cid}&date=${date}`);
-  const j=await r.json();
-  if(!j.data||j.data.length===0){document.getElementById('noSlots').style.display='block';return;}
-  document.getElementById('slotsGrid').innerHTML=j.data.map(t=>{
-    const[h,m]=t.split(':');const hr=parseInt(h);
+async function loadSlots() {
+  const cid = document.getElementById('bookCourse').value;
+  const date = document.getElementById('bookDate').value;
+  selSlot = null;
+  document.getElementById('slotsWrap').style.display = 'none';
+  document.getElementById('noSlots').style.display = 'none';
+  if (!cid || !date) return;
+  selCourseId = cid;
+  const r = await fetch(`${API}/slots?course_id=${cid}&date=${date}`);
+  const j = await r.json();
+  if (!j.data || j.data.length === 0) { document.getElementById('noSlots').style.display = 'block'; return; }
+  document.getElementById('slotsGrid').innerHTML = j.data.map(t => {
+    const [h,m] = t.split(':'); const hr = parseInt(h);
     return `<button class="slot" data-t="${t}" onclick="pickSlot(this)">${hr>12?hr-12:hr||12}:${m} ${hr>=12?'pm':'am'}</button>`;
   }).join('');
-  document.getElementById('slotsWrap').style.display='block';
+  document.getElementById('slotsWrap').style.display = 'block';
 }
-document.getElementById('bookCourse').addEventListener('change',loadSlots);
-document.getElementById('bookDate').addEventListener('change',loadSlots);
+document.getElementById('bookCourse').addEventListener('change', loadSlots);
+document.getElementById('bookDate').addEventListener('change', loadSlots);
 
-function pickSlot(btn){
-  document.querySelectorAll('.slot').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active'); selSlot=btn.dataset.t;
-  setTimeout(showStep2,280);
+function pickSlot(btn) {
+  document.querySelectorAll('.slot').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active'); selSlot = btn.dataset.t;
+  setTimeout(showStep2, 280);
 }
 
-function showStep2(){
-  const cid=document.getElementById('bookCourse').value;
-  const date=document.getElementById('bookDate').value;
-  if(!cid||!date||!selSlot)return;
-  const course=courses.find(c=>c.id==cid);
-  const df=new Date(date+'T12:00:00').toLocaleDateString('es-CR',{weekday:'long',day:'numeric',month:'long'});
-  const[h,m]=selSlot.split(':');const hr=parseInt(h);
-  document.getElementById('summaryBar').innerHTML=
+function showStep2() {
+  const cid = document.getElementById('bookCourse').value;
+  const date = document.getElementById('bookDate').value;
+  if (!cid || !date || !selSlot) return;
+  const course = courses.find(c => c.id == cid);
+  const df = new Date(date+'T12:00:00').toLocaleDateString('es-CR',{weekday:'long',day:'numeric',month:'long'});
+  const [h,m] = selSlot.split(':'); const hr = parseInt(h);
+  document.getElementById('summaryBar').innerHTML =
     `📚 <strong>${course.name}</strong> · 📅 ${df} · 🕐 ${hr>12?hr-12:hr||12}:${m} ${hr>=12?'pm':'am'}`;
   document.getElementById('step1').classList.remove('active');
   document.getElementById('step2').classList.add('active');
   document.getElementById('booking').scrollIntoView({behavior:'smooth'});
 }
 
-document.getElementById('btnBack').onclick=()=>{
+document.getElementById('btnBack').onclick = () => {
   document.getElementById('step2').classList.remove('active');
   document.getElementById('step1').classList.add('active');
-  document.getElementById('formErr').textContent='';
+  document.getElementById('formErr').textContent = '';
 };
 
-document.getElementById('btnSubmit').onclick=async()=>{
-  const name=document.getElementById('sName').value.trim();
-  const email=document.getElementById('sEmail').value.trim();
-  const err=document.getElementById('formErr');
-  err.textContent='';
-  if(!name){err.textContent='Por favor ingresa tu nombre.';return;}
-  if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){err.textContent='Ingresa un correo válido.';return;}
-  const btn=document.getElementById('btnSubmit');
-  btn.disabled=true;btn.textContent='Enviando...';
-  try{
-    const res=await fetch(`${API}/bookings`,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({course_id:selCourseId,student_name:name,student_email:email,
-        student_phone:document.getElementById('sPhone').value.trim()||null,
-        booking_date:document.getElementById('bookDate').value,
-        start_time:selSlot,message:document.getElementById('sMsg').value.trim()||null})});
-    const j=await res.json();
-    if(!j.success){err.textContent=j.error||'Error al enviar. Intenta de nuevo.';return;}
-    const df=new Date(j.data.booking_date+'T12:00:00').toLocaleDateString('es-CR',{weekday:'long',day:'numeric',month:'long'});
-    const[h,m]=j.data.start_time.split(':');const hr=parseInt(h);
-    document.getElementById('modalInfo').innerHTML=
+document.getElementById('btnSubmit').onclick = async () => {
+  const name = document.getElementById('sName').value.trim();
+  const email = document.getElementById('sEmail').value.trim();
+  const err = document.getElementById('formErr');
+  err.textContent = '';
+  if (!name) { err.textContent = 'Por favor ingresa tu nombre.'; return; }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.textContent = 'Ingresa un correo válido.'; return; }
+  const btn = document.getElementById('btnSubmit');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+  try {
+    const res = await fetch(`${API}/bookings`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        course_id: selCourseId, student_name: name, student_email: email,
+        student_phone: document.getElementById('sPhone').value.trim() || null,
+        booking_date: document.getElementById('bookDate').value,
+        start_time: selSlot,
+        message: document.getElementById('sMsg').value.trim() || null
+      })
+    });
+    const j = await res.json();
+    if (!j.success) { err.textContent = j.error || 'Error al enviar. Intenta de nuevo.'; return; }
+    const df = new Date(j.data.booking_date+'T12:00:00').toLocaleDateString('es-CR',{weekday:'long',day:'numeric',month:'long'});
+    const [h,m] = j.data.start_time.split(':'); const hr = parseInt(h);
+    document.getElementById('modalInfo').innerHTML =
       `<strong>Curso:</strong> ${j.data.course_name}<br><strong>Fecha:</strong> ${df}<br><strong>Hora:</strong> ${hr>12?hr-12:hr||12}:${m} ${hr>=12?'pm':'am'}<br><strong>Nombre:</strong> ${name}`;
     document.getElementById('overlay').classList.add('open');
     document.getElementById('step2').classList.remove('active');
     document.getElementById('step1').classList.add('active');
-    ['bookCourse','bookDate','sName','sEmail','sPhone','sMsg'].forEach(id=>document.getElementById(id).value='');
-    document.getElementById('slotsWrap').style.display='none';
-    selSlot=null;selCourseId=null;
-  }catch{err.textContent='Error de conexión.';}
-  finally{btn.disabled=false;btn.textContent='Confirmar reserva ✓';}
+    ['bookCourse','bookDate','sName','sEmail','sPhone','sMsg'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('slotsWrap').style.display = 'none';
+    selSlot = null; selCourseId = null;
+  } catch { err.textContent = 'Error de conexión.'; }
+  finally { btn.disabled = false; btn.textContent = 'Confirmar reserva ✓'; }
 };
 
-document.getElementById('modalClose').onclick=()=>document.getElementById('overlay').classList.remove('open');
-document.getElementById('overlay').onclick=e=>{
-  if(e.target===document.getElementById('overlay'))document.getElementById('overlay').classList.remove('open');
+document.getElementById('modalClose').onclick = () => document.getElementById('overlay').classList.remove('open');
+document.getElementById('overlay').onclick = e => {
+  if (e.target === document.getElementById('overlay')) document.getElementById('overlay').classList.remove('open');
 };
 </script>
 </body>

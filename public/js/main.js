@@ -35,6 +35,7 @@ dateInput.min = today.toISOString().split('T')[0];
 
 // ── Format currency ────────────────────────
 function formatPrice(price) {
+  if (!price || Number(price) === 0) return "Consultar precio";
   return '₡' + Number(price).toLocaleString('es-CR');
 }
 
@@ -62,7 +63,7 @@ function renderCourses(courses) {
         <span>⏱ ${c.duration_minutes} min</span>
         <span>👤 Máx. ${c.max_students} ${c.max_students === 1 ? 'persona' : 'personas'}</span>
       </div>
-      <div class="course-price">${formatPrice(c.price)} <small>/ sesión</small></div>
+      <div class="course-price">${formatPrice(c.price)} ${Number(c.price) > 0 ? '<small>/ sesión</small>' : ''}</div>
       <button class="btn-primary" onclick="goToBooking(${c.id})">Agendar este curso</button>
     </div>
   `).join('');

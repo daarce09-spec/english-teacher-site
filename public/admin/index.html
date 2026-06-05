@@ -261,7 +261,10 @@
     .mobile-header img { height: 36px; filter: brightness(0) invert(1); opacity: 0.9; }
     .hamburger-btn { background: none; border: none; color: #fff; font-size: 1.3rem; cursor: pointer; }
 
-    @media(max-width:900px){
+    .filter-period.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+    .filter-period:hover { background: rgba(45,47,94,0.1); border-color: var(--navy); color: var(--navy); }
+    .filter-period.active:hover { background: var(--navy-d); }
+        @media(max-width:900px){
       .stats-grid { grid-template-columns: 1fr 1fr; }
       .main { margin-left: 0; padding: 16px; padding-top: 76px; }
       .sidebar { transform: translateX(-100%); }
@@ -339,15 +342,23 @@
     <div class="page" id="page-bookings">
       <div class="page-title">Reservas</div>
       <div class="page-sub">Gestiona todas las solicitudes de clase</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center">
+        <button class="btn btn-outline btn-sm filter-period active" data-period="upcoming">📅 Próximas</button>
+        <button class="btn btn-outline btn-sm filter-period" data-period="today">Hoy</button>
+        <button class="btn btn-outline btn-sm filter-period" data-period="week">Esta semana</button>
+        <button class="btn btn-outline btn-sm filter-period" data-period="month">Este mes</button>
+        <button class="btn btn-outline btn-sm filter-period" data-period="all">Todas</button>
+        <select id="filterStatus" class="btn btn-outline btn-sm" style="padding:6px 12px;border-radius:50px;margin-left:auto">
+          <option value="">Todos los estados</option>
+          <option value="pending">Pendientes</option>
+          <option value="confirmed">Confirmadas</option>
+          <option value="cancelled">Canceladas</option>
+        </select>
+      </div>
       <div class="card">
         <div class="card-header">
-          <h3>Todas las reservas</h3>
-          <select id="filterStatus" class="btn btn-outline btn-sm" style="padding:6px 12px;border-radius:50px">
-            <option value="">Todos los estados</option>
-            <option value="pending">Pendientes</option>
-            <option value="confirmed">Confirmadas</option>
-            <option value="cancelled">Canceladas</option>
-          </select>
+          <h3 id="bookingsTitle">Próximas reservas</h3>
+          <span id="bookingsCount" style="font-size:0.8rem;color:var(--ink-m);font-weight:600"></span>
         </div>
         <div id="bookingsTableWrap"><div class="loading">Cargando...</div></div>
       </div>
@@ -570,14 +581,53 @@ async function loadDashboard() {
   }
 }
 
+let currentPeriod = 'upcoming';
+
 async function loadBookings() {
   const json = await api('/bookings');
   if (!json.success) return;
   allBookings = json.data;
-  renderBookings(allBookings);
+  applyBookingFilters();
 }
+
+function applyBookingFilters() {
+  const today = new Date().toISOString().split('T')[0];
+  const statusFilter = document.getElementById('filterStatus').value;
+  let filtered = [...allBookings];
+
+  // Period filter
+  if (currentPeriod === 'upcoming') {
+    filtered = filtered.filter(b => b.booking_date >= today);
+    document.getElementById('bookingsTitle').textContent = 'Próximas reservas';
+  } else if (currentPeriod === 'today') {
+    filtered = filtered.filter(b => b.booking_date === today);
+    document.getElementById('bookingsTitle').textContent = 'Reservas de hoy';
+  } else if (currentPeriod === 'week') {
+    const weekEnd = new Date(); weekEnd.setDate(weekEnd.getDate() + 7);
+    const weekEndStr = weekEnd.toISOString().split('T')[0];
+    filtered = filtered.filter(b => b.booking_date >= today && b.booking_date <= weekEndStr);
+    document.getElementById('bookingsTitle').textContent = 'Esta semana';
+  } else if (currentPeriod === 'month') {
+    const monthEnd = new Date(); monthEnd.setMonth(monthEnd.getMonth() + 1);
+    const monthEndStr = monthEnd.toISOString().split('T')[0];
+    filtered = filtered.filter(b => b.booking_date >= today && b.booking_date <= monthEndStr);
+    document.getElementById('bookingsTitle').textContent = 'Este mes';
+  } else {
+    document.getElementById('bookingsTitle').textContent = 'Todas las reservas';
+  }
+
+  // Status filter
+  if (statusFilter) filtered = filtered.filter(b => b.status === statusFilter);
+
+  document.getElementById('bookingsCount').textContent = `${filtered.length} reserva${filtered.length !== 1 ? 's' : ''}`;
+  renderBookings(filtered);
+}
+
 function renderBookings(data) {
-  if (data.length === 0) { document.getElementById('bookingsTableWrap').innerHTML = '<div class="empty-state">No hay reservas aún</div>'; return; }
+  if (data.length === 0) {
+    document.getElementById('bookingsTableWrap').innerHTML = '<div class="empty-state">No hay reservas para este período</div>';
+    return;
+  }
   document.getElementById('bookingsTableWrap').innerHTML = `<table><thead><tr><th>Fecha</th><th>Hora</th><th>Estudiante</th><th>Curso</th><th>Estado</th><th>Acciones</th></tr></thead>
     <tbody>${data.map(b=>`<tr>
       <td>${fmtDate(b.booking_date)}</td><td>${fmtTime(b.start_time)}</td>
@@ -591,10 +641,18 @@ function renderBookings(data) {
         <button class="btn btn-danger btn-sm" onclick="deleteBooking(${b.id})">Eliminar</button>
       </div></td></tr>`).join('')}</tbody></table>`;
 }
-document.getElementById('filterStatus').addEventListener('change', e => {
-  const v = e.target.value;
-  renderBookings(v ? allBookings.filter(b=>b.status===v) : allBookings);
+
+// Period filter buttons
+document.querySelectorAll('.filter-period').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-period').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentPeriod = btn.dataset.period;
+    applyBookingFilters();
+  });
 });
+
+document.getElementById('filterStatus').addEventListener('change', applyBookingFilters);
 async function updateBooking(id, status) { await api(`/bookings/${id}`,'PUT',{status}); loadBookings(); loadDashboard(); }
 async function deleteBooking(id) { if(!confirm('¿Eliminar esta reserva?')) return; await api(`/bookings/${id}`,'DELETE'); loadBookings(); loadDashboard(); }
 

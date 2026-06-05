@@ -534,9 +534,12 @@
           <div class="fg"><label>Curso</label>
             <select id="bookCourse"><option value="">Selecciona...</option></select>
           </div>
-          <div class="fg"><label>Fecha</label>
-            <input type="date" id="bookDate" />
-            <small id="dateHint" style="color:var(--ink-m);font-size:0.72rem;font-weight:600;display:none">Solo se muestran días con horarios disponibles</small>
+          <div class="fg full" style="grid-column:1/-1">
+            <label>Fecha disponible</label>
+            <div id="dateButtons" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
+              <span style="font-size:0.82rem;color:var(--ink-m);font-weight:500">Selecciona primero un curso</span>
+            </div>
+            <input type="hidden" id="bookDate" />
           </div>
         </div>
         <div class="slots-wrap" id="slotsWrap" style="display:none">

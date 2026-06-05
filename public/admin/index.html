@@ -244,6 +244,8 @@
     }
     .slot-chip button { background: none; border: none; color: var(--green); font-size: 1rem; line-height: 1; padding: 0; opacity: 0.6; transition: opacity 0.2s; cursor: pointer; }
     .slot-chip button:hover { opacity: 1; }
+    .slot-type-btn { background: rgba(255,255,255,0.5); border: 1.5px solid var(--border); color: var(--ink-s); }
+    .slot-type-btn.active { background: var(--navy); color: #fff; border-color: var(--navy); }
     .slot-add-row { display: flex; gap: 8px; align-items: flex-end; margin-top: 12px; flex-wrap: wrap; }
     .slot-add-row .form-group { flex: 1; min-width: 130px; }
 
@@ -454,9 +456,23 @@
     </div>
     <div style="border-top:1px solid rgba(255,255,255,0.4);padding-top:16px;margin-top:4px">
       <div style="font-size:0.88rem;font-weight:800;color:var(--navy);margin-bottom:4px">Horarios disponibles</div>
-      <div style="font-size:0.76rem;color:var(--ink-m);margin-bottom:10px;font-weight:500">Define los días y horas disponibles para este curso</div>
-      <div class="slots-list" id="slotsList"></div>
-      <div class="slot-add-row">
+      <div style="font-size:0.76rem;color:var(--ink-m);margin-bottom:12px;font-weight:500">Agrega fechas específicas o rangos semanales</div>
+      
+      <!-- Tipo de horario -->
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <button class="btn btn-sm slot-type-btn active" data-type="specific" onclick="setSlotType('specific')">📅 Fecha específica</button>
+        <button class="btn btn-sm slot-type-btn" data-type="range" onclick="setSlotType('range')">🔁 Rango semanal</button>
+      </div>
+
+      <!-- Fecha específica -->
+      <div id="slotSpecific" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">
+        <div class="form-group"><label>Fecha</label><input type="date" id="slotSpecificDate" /></div>
+        <div class="form-group"><label>Hora</label><input type="time" id="slotSpecificTime" value="08:00" /></div>
+        <button class="btn btn-outline btn-sm" style="margin-bottom:1px" onclick="addSlot()">+ Agregar</button>
+      </div>
+
+      <!-- Rango semanal -->
+      <div id="slotRange" style="display:none;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px">
         <div class="form-group"><label>Día</label>
           <select id="slotDay">
             <option value="1">Lunes</option><option value="2">Martes</option>
@@ -465,9 +481,13 @@
             <option value="0">Domingo</option>
           </select>
         </div>
-        <div class="form-group"><label>Hora</label><input type="time" id="slotTime" value="08:00" /></div>
+        <div class="form-group"><label>Hora</label><input type="time" id="slotRangeTime" value="08:00" /></div>
+        <div class="form-group"><label>Desde</label><input type="date" id="slotRangeFrom" /></div>
+        <div class="form-group"><label>Hasta</label><input type="date" id="slotRangeTo" /></div>
         <button class="btn btn-outline btn-sm" style="margin-bottom:1px" onclick="addSlot()">+ Agregar</button>
       </div>
+
+      <div class="slots-list" id="slotsList"></div>
     </div>
     <div class="form-msg" id="courseMsg" style="margin-top:12px"></div>
     <div class="form-actions">
@@ -483,6 +503,14 @@ let token = localStorage.getItem('adminToken');
 const DAYS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 let currentCourseSlots = [];
 let editingCourseId = null;
+let currentSlotType = 'specific';
+
+function setSlotType(type) {
+  currentSlotType = type;
+  document.querySelectorAll('.slot-type-btn').forEach(b => b.classList.toggle('active', b.dataset.type === type));
+  document.getElementById('slotSpecific').style.display = type === 'specific' ? 'flex' : 'none';
+  document.getElementById('slotRange').style.display = type === 'range' ? 'flex' : 'none';
+}
 let allBookings = [];
 let allCourses = [];
 
@@ -684,25 +712,63 @@ function openCourseModal(course=null) {
   document.getElementById('courseModal').classList.add('open');
 }
 async function loadSlotsForModal(courseId) {
-  const json = await api(`/slots/${courseId}`);
-  if (json.success) { currentCourseSlots = json.data.map(s=>({id:s.id,day:s.day_of_week,time:s.start_time.slice(0,5)})); renderSlots(); }
+  const json = await api(`/slots_v2/${courseId}`);
+  if (json.success) { 
+    currentCourseSlots = json.data.map(s=>({
+      id: s.id,
+      slot_type: s.slot_type,
+      specific_date: s.specific_date,
+      day_of_week: s.day_of_week,
+      start_time: s.start_time ? s.start_time.slice(0,5) : s.start_time,
+      date_from: s.date_from,
+      date_to: s.date_to
+    }));
+    renderSlots();
+  }
 }
 function renderSlots() {
-  document.getElementById('slotsList').innerHTML = currentCourseSlots.map((s,i)=>`
-    <div class="slot-chip">${DAYS[s.day]} ${fmtTime(s.time)}<button onclick="removeSlot(${i})">×</button></div>`).join('');
+  const DAYS_ES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  document.getElementById('slotsList').innerHTML = currentCourseSlots.map((s,i) => {
+    let label = '';
+    if (s.slot_type === 'specific') {
+      const d = new Date(s.specific_date + 'T12:00:00');
+      label = `📅 ${d.toLocaleDateString('es-CR',{weekday:'short',day:'numeric',month:'short'})} ${fmtTime(s.start_time)}`;
+    } else {
+      label = `🔁 ${DAYS_ES[s.day_of_week]} ${fmtTime(s.start_time)} · ${s.date_from} → ${s.date_to}`;
+    }
+    return `<div class="slot-chip">${label}<button onclick="removeSlot(${i})">×</button></div>`;
+  }).join('');
 }
 async function addSlot() {
-  const day = parseInt(document.getElementById('slotDay').value);
-  const time = document.getElementById('slotTime').value;
-  if (!time) return;
-  if (!editingCourseId) { if(currentCourseSlots.some(s=>s.day===day&&s.time===time)) return; currentCourseSlots.push({id:null,day,time}); renderSlots(); return; }
-  const json = await api('/slots','POST',{course_id:editingCourseId,day_of_week:day,start_time:time});
-  if (json.success) { currentCourseSlots.push({id:json.data.id,day,time}); renderSlots(); }
-  else showMsg('courseMsg',json.error,'error');
+  let slotData = { slot_type: currentSlotType };
+  
+  if (currentSlotType === 'specific') {
+    const date = document.getElementById('slotSpecificDate').value;
+    const time = document.getElementById('slotSpecificTime').value;
+    if (!date || !time) { showMsg('courseMsg','Completá la fecha y hora','error'); return; }
+    slotData = {...slotData, specific_date: date, start_time: time};
+  } else {
+    const day = parseInt(document.getElementById('slotDay').value);
+    const time = document.getElementById('slotRangeTime').value;
+    const from = document.getElementById('slotRangeFrom').value;
+    const to = document.getElementById('slotRangeTo').value;
+    if (!time || !from || !to) { showMsg('courseMsg','Completá todos los campos del rango','error'); return; }
+    if (from >= to) { showMsg('courseMsg','La fecha de inicio debe ser antes que la de fin','error'); return; }
+    slotData = {...slotData, day_of_week: day, start_time: time, date_from: from, date_to: to};
+  }
+
+  if (!editingCourseId) {
+    currentCourseSlots.push({id: null, ...slotData});
+    renderSlots(); return;
+  }
+
+  const json = await api('/slots_v2', 'POST', {course_id: editingCourseId, ...slotData});
+  if (json.success) { currentCourseSlots.push({id: json.data.id, ...slotData}); renderSlots(); }
+  else showMsg('courseMsg', json.error, 'error');
 }
 async function removeSlot(index) {
   const slot = currentCourseSlots[index];
-  if (slot.id) await api(`/slots/${slot.id}`,'DELETE');
+  if (slot.id) await api(`/slots_v2/${slot.id}`,'DELETE');
   currentCourseSlots.splice(index,1); renderSlots();
 }
 async function saveCourse() {
@@ -716,7 +782,7 @@ async function saveCourse() {
   else {
     json = await api('/courses','POST',data);
     if (json.success && currentCourseSlots.length>0) {
-      for (const s of currentCourseSlots) await api('/slots','POST',{course_id:json.data.id,day_of_week:s.day,start_time:s.time});
+      for (const s of currentCourseSlots) await api('/slots_v2','POST',{course_id:json.data.id,...s,id:undefined});
     }
   }
   if (json.success) { closeCourseModal(); loadCourses(); }

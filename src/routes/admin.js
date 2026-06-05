@@ -254,4 +254,43 @@ router.get('/stats', requireAuth, async (req, res) => {
   }
 });
 
+// ── TIME SLOTS V2 ──────────────────────────
+router.get('/slots_v2/:courseId', requireAuth, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT * FROM time_slots_v2 WHERE course_id=$1 ORDER BY slot_type, specific_date, day_of_week, start_time',
+      [req.params.courseId]
+    );
+    res.json({ success: true, data: rows });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+router.post('/slots_v2', requireAuth, async (req, res) => {
+  const { course_id, slot_type, specific_date, day_of_week, start_time, date_from, date_to } = req.body;
+  if (!course_id || !slot_type || !start_time) {
+    return res.status(400).json({ success: false, error: 'Faltan campos requeridos' });
+  }
+  try {
+    const { rows } = await pool.query(
+      `INSERT INTO time_slots_v2 (course_id, slot_type, specific_date, day_of_week, start_time, date_from, date_to)
+       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+      [course_id, slot_type, specific_date||null, day_of_week??null, start_time, date_from||null, date_to||null]
+    );
+    res.json({ success: true, data: rows[0] });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+router.delete('/slots_v2/:id', requireAuth, async (req, res) => {
+  try {
+    await pool.query('DELETE FROM time_slots_v2 WHERE id=$1', [req.params.id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 module.exports = router;

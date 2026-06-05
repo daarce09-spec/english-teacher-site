@@ -14,7 +14,7 @@ router.get('/courses', async (req, res) => {
   }
 });
 
-// GET available slots for a course on a given date
+// GET available slots for a course on a given date (uses v2)
 router.get('/slots', async (req, res) => {
   const { course_id, date } = req.query;
   if (!course_id || !date) {
@@ -22,16 +22,20 @@ router.get('/slots', async (req, res) => {
   }
 
   try {
-    const dateObj = new Date(date);
-    const dayOfWeek = dateObj.getUTCDay(); // 0=Sunday
+    const dateObj = new Date(date + 'T12:00:00');
+    const dayOfWeek = dateObj.getDay();
 
-    // Get all slots for this course and day
-    const { rows: allSlots } = await pool.query(
-      `SELECT start_time FROM time_slots WHERE course_id = $1 AND day_of_week = $2`,
-      [course_id, dayOfWeek]
+    // Get matching v2 slots for this date
+    const { rows: v2Slots } = await pool.query(
+      `SELECT DISTINCT start_time FROM time_slots_v2 
+       WHERE course_id = $1 AND (
+         (slot_type = 'specific' AND specific_date = $2) OR
+         (slot_type = 'range' AND day_of_week = $3 AND date_from <= $2 AND date_to >= $2)
+       )`,
+      [course_id, date, dayOfWeek]
     );
 
-    // Get booked slots for this course and date
+    // Get booked slots
     const { rows: booked } = await pool.query(
       `SELECT start_time FROM bookings 
        WHERE course_id = $1 AND booking_date = $2 AND status != 'cancelled'`,
@@ -39,9 +43,10 @@ router.get('/slots', async (req, res) => {
     );
 
     const bookedTimes = booked.map(b => b.start_time.slice(0, 5));
-    const available = allSlots
+    const available = v2Slots
       .map(s => s.start_time.slice(0, 5))
-      .filter(t => !bookedTimes.includes(t));
+      .filter(t => !bookedTimes.includes(t))
+      .sort();
 
     res.json({ success: true, data: available });
   } catch (err) {
@@ -131,36 +136,46 @@ router.get('/profile', async (req, res) => {
   }
 });
 
-// GET available days for a course in a given year-month
+// GET available dates for a course (next 60 days) using v2 slots
 router.get('/available-days', async (req, res) => {
-  const { course_id, year, month } = req.query;
-  if (!course_id || !year || !month) {
-    return res.status(400).json({ success: false, error: 'course_id, year and month required' });
+  const { course_id } = req.query;
+  if (!course_id) {
+    return res.status(400).json({ success: false, error: 'course_id required' });
   }
   try {
-    // Get days of week that have slots for this course
     const { rows: slots } = await pool.query(
-      'SELECT DISTINCT day_of_week FROM time_slots WHERE course_id = $1',
+      'SELECT * FROM time_slots_v2 WHERE course_id = $1',
       [course_id]
     );
-    const availableDays = slots.map(s => s.day_of_week);
 
-    // Generate all dates in the month that match those days
-    const y = parseInt(year);
-    const m = parseInt(month) - 1; // JS months are 0-indexed
-    const daysInMonth = new Date(y, m + 1, 0).getDate();
-    const today = new Date().toISOString().split('T')[0];
-    const availableDates = [];
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const maxDate = new Date(today);
+    maxDate.setDate(maxDate.getDate() + 90); // next 90 days
+    const availableDates = new Set();
 
-    for (let d = 1; d <= daysInMonth; d++) {
-      const date = new Date(y, m, d);
-      const dateStr = date.toISOString().split('T')[0];
-      if (dateStr > today && availableDays.includes(date.getDay())) {
-        availableDates.push(dateStr);
+    for (const slot of slots) {
+      if (slot.slot_type === 'specific') {
+        const d = new Date(slot.specific_date + 'T12:00:00');
+        if (d > today && d <= maxDate) {
+          availableDates.add(slot.specific_date);
+        }
+      } else if (slot.slot_type === 'range') {
+        const from = new Date(slot.date_from + 'T12:00:00');
+        const to = new Date(slot.date_to + 'T12:00:00');
+        const start = from > today ? from : new Date(today.getTime() + 86400000);
+        const end = to < maxDate ? to : maxDate;
+        
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+          if (d.getDay() === slot.day_of_week) {
+            availableDates.add(d.toISOString().split('T')[0]);
+          }
+        }
       }
     }
 
-    res.json({ success: true, data: availableDates });
+    const sorted = Array.from(availableDates).sort();
+    res.json({ success: true, data: sorted });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

@@ -131,4 +131,39 @@ router.get('/profile', async (req, res) => {
   }
 });
 
+// GET available days for a course in a given year-month
+router.get('/available-days', async (req, res) => {
+  const { course_id, year, month } = req.query;
+  if (!course_id || !year || !month) {
+    return res.status(400).json({ success: false, error: 'course_id, year and month required' });
+  }
+  try {
+    // Get days of week that have slots for this course
+    const { rows: slots } = await pool.query(
+      'SELECT DISTINCT day_of_week FROM time_slots WHERE course_id = $1',
+      [course_id]
+    );
+    const availableDays = slots.map(s => s.day_of_week);
+
+    // Generate all dates in the month that match those days
+    const y = parseInt(year);
+    const m = parseInt(month) - 1; // JS months are 0-indexed
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
+    const today = new Date().toISOString().split('T')[0];
+    const availableDates = [];
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const date = new Date(y, m, d);
+      const dateStr = date.toISOString().split('T')[0];
+      if (dateStr > today && availableDays.includes(date.getDay())) {
+        availableDates.push(dateStr);
+      }
+    }
+
+    res.json({ success: true, data: availableDates });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 module.exports = router;

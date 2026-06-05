@@ -726,7 +726,8 @@ async function loadSlots() {
 document.getElementById('bookCourse').addEventListener('change', async () => { await updateAvailableDates(); });
 
 function pickSlot(btn) {
-  document.querySelectorAll('.slot').forEach(b => b.classList.remove('active'));
+  // Only remove active from time slot buttons, not date buttons
+  document.querySelectorAll('#slotsGrid .slot').forEach(b => b.classList.remove('active'));
   btn.classList.add('active'); selSlot = btn.dataset.t;
   setTimeout(showStep2, 280);
 }

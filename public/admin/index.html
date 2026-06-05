@@ -568,9 +568,17 @@ async function loadDashboard() {
   }
   if (bookings.success) {
     const today = new Date().toISOString().split('T')[0];
-    const upcoming = bookings.data.filter(b => b.booking_date >= today && b.status !== 'cancelled').slice(0,6);
+    const next7 = new Date(); next7.setDate(next7.getDate() + 7);
+    const next7Str = next7.toISOString().split('T')[0];
+    const upcoming = bookings.data.filter(b => 
+      b.booking_date >= today && 
+      b.booking_date <= next7Str && 
+      b.status !== 'cancelled'
+    );
+    const dashHeader = document.querySelector('#page-dashboard .card-header');
+    if (dashHeader) dashHeader.innerHTML = `<h3>📅 Próximos 7 días</h3><span style="font-size:0.8rem;color:var(--ink-m);font-weight:600">${upcoming.length} reserva${upcoming.length!==1?'s':''} · <a href="#" onclick="goToPage('bookings')" style="color:var(--navy);font-weight:700">Ver todas →</a></span>`;
     if (upcoming.length === 0) {
-      document.getElementById('upcomingBookings').innerHTML = '<div class="empty-state">No hay reservas próximas</div>';
+      document.getElementById('upcomingBookings').innerHTML = '<div class="empty-state">Sin reservas en los próximos 7 días</div>';
     } else {
       document.getElementById('upcomingBookings').innerHTML = `<table><thead><tr><th>Fecha</th><th>Hora</th><th>Estudiante</th><th>Curso</th><th>Estado</th></tr></thead>
         <tbody>${upcoming.map(b=>`<tr><td>${fmtDate(b.booking_date)}</td><td>${fmtTime(b.start_time)}</td>
@@ -795,6 +803,13 @@ async function changePassword() {
   if (json.success) { ['pwCurrent','pwNew','pwConfirm'].forEach(id=>document.getElementById(id).value=''); }
 }
 
+function goToPage(page) {
+  document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelector(`.nav-item[data-page="${page}"]`).classList.add('active');
+  document.getElementById(`page-${page}`).classList.add('active');
+  if(page==='bookings') loadBookings();
+}
 function v(id) { return document.getElementById(id)?.value||''; }
 function showMsg(id,msg,type) {
   const el=document.getElementById(id);

@@ -163,7 +163,8 @@
     .card-body { padding: 20px 22px; }
 
     /* ── TABLES ── */
-    table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.84rem; min-width: 600px; }
     th {
       text-align: left; padding: 10px 14px;
       font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em;
@@ -650,7 +651,7 @@ function renderBookings(data) {
     document.getElementById('bookingsTableWrap').innerHTML = '<div class="empty-state">No hay reservas para este período</div>';
     return;
   }
-  document.getElementById('bookingsTableWrap').innerHTML = `<table><thead><tr><th>Fecha</th><th>Hora</th><th>Estudiante</th><th>Curso</th><th>Estado</th><th>Acciones</th></tr></thead>
+  document.getElementById('bookingsTableWrap').innerHTML = `<div class='table-wrap'><table><thead><tr><th>Fecha</th><th>Hora</th><th>Estudiante</th><th>Curso</th><th>Estado</th><th>Acciones</th></tr></thead>
     <tbody>${data.map(b=>`<tr>
       <td>${fmtDate(b.booking_date)}</td><td>${fmtTime(b.start_time)}</td>
       <td><strong>${b.student_name}</strong><br><small style="color:var(--ink-m)">${b.student_email}${b.student_phone?' · '+b.student_phone:''}</small>
@@ -683,7 +684,7 @@ async function loadCourses() {
   if (!json.success) return;
   allCourses = json.data;
   if (allCourses.length === 0) { document.getElementById('coursesTableWrap').innerHTML = '<div class="empty-state">No hay cursos. ¡Agrega uno!</div>'; return; }
-  document.getElementById('coursesTableWrap').innerHTML = `<table><thead><tr><th>Curso</th><th>Nivel</th><th>Duración</th><th>Precio</th><th>Estado</th><th>Acciones</th></tr></thead>
+  document.getElementById('coursesTableWrap').innerHTML = `<div class='table-wrap'><table><thead><tr><th>Curso</th><th>Nivel</th><th>Duración</th><th>Precio</th><th>Estado</th><th>Acciones</th></tr></thead>
     <tbody>${allCourses.map(c=>`<tr>
       <td><strong>${c.name}</strong><br><small style="color:var(--ink-m)">${(c.description||'').substring(0,55)}${(c.description||'').length>55?'...':''}</small></td>
       <td>${c.level||'—'}</td><td>${c.duration_minutes} min</td>
@@ -803,7 +804,7 @@ async function loadReviews() {
   if (!json.success) return;
   const reviews = json.data;
   if (reviews.length===0) { document.getElementById('reviewsTableWrap').innerHTML='<div class="empty-state">No hay reseñas aún</div>'; return; }
-  document.getElementById('reviewsTableWrap').innerHTML=`<table><thead><tr><th>Estudiante</th><th>Calificación</th><th>Comentario</th><th>Curso</th><th>Estado</th><th>Acciones</th></tr></thead>
+  document.getElementById('reviewsTableWrap').innerHTML=`<div class='table-wrap'><table><thead><tr><th>Estudiante</th><th>Calificación</th><th>Comentario</th><th>Curso</th><th>Estado</th><th>Acciones</th></tr></thead>
     <tbody>${reviews.map(r=>`<tr>
       <td><strong>${r.student_name}</strong><br><small style="color:var(--ink-m)">${fmtDate(r.created_at)}</small></td>
       <td><span class="stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</span></td>
@@ -893,7 +894,7 @@ function renderDashboardBookings(days) {
   if (filtered.length === 0) {
     document.getElementById('upcomingBookings').innerHTML = `<div class="empty-state">Sin reservas en este período</div>`;
   } else {
-    document.getElementById('upcomingBookings').innerHTML = `<table><thead><tr><th>Fecha</th><th>Hora</th><th>Estudiante</th><th>Curso</th><th>Estado</th></tr></thead>
+    document.getElementById('upcomingBookings').innerHTML = `<div class='table-wrap'><table><thead><tr><th>Fecha</th><th>Hora</th><th>Estudiante</th><th>Curso</th><th>Estado</th></tr></thead>
       <tbody>${filtered.map(b=>`<tr>
         <td>${fmtDate(b.booking_date)}</td><td>${fmtTime(b.start_time)}</td>
         <td><strong>${b.student_name}</strong><br><small style="color:var(--ink-m)">${b.student_email}</small></td>

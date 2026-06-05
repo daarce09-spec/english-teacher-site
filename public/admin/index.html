@@ -567,25 +567,8 @@ async function loadDashboard() {
       <div class="stat-card"><div class="stat-label">Reseñas</div><div class="stat-num coral">${d.pending_reviews}</div><div class="stat-desc">por moderar</div></div>`;
   }
   if (bookings.success) {
-    const today = new Date().toISOString().split('T')[0];
-    const next7 = new Date(); next7.setDate(next7.getDate() + 7);
-    const next7Str = next7.toISOString().split('T')[0];
-    const upcoming = bookings.data.filter(b => 
-      b.booking_date >= today && 
-      b.booking_date <= next7Str && 
-      b.status !== 'cancelled'
-    );
-    const dashHeader = document.querySelector('#page-dashboard .card-header');
-    if (dashHeader) dashHeader.innerHTML = `<h3>📅 Próximos 7 días</h3><span style="font-size:0.8rem;color:var(--ink-m);font-weight:600">${upcoming.length} reserva${upcoming.length!==1?'s':''} · <a href="#" onclick="goToPage('bookings')" style="color:var(--navy);font-weight:700">Ver todas →</a></span>`;
-    if (upcoming.length === 0) {
-      document.getElementById('upcomingBookings').innerHTML = '<div class="empty-state">Sin reservas en los próximos 7 días</div>';
-    } else {
-      document.getElementById('upcomingBookings').innerHTML = `<table><thead><tr><th>Fecha</th><th>Hora</th><th>Estudiante</th><th>Curso</th><th>Estado</th></tr></thead>
-        <tbody>${upcoming.map(b=>`<tr><td>${fmtDate(b.booking_date)}</td><td>${fmtTime(b.start_time)}</td>
-          <td><strong>${b.student_name}</strong><br><small style="color:var(--ink-m)">${b.student_email}</small></td>
-          <td>${b.course_name||'—'}</td>
-          <td><span class="badge badge-${b.status}">${statusLabel(b.status)}</span></td></tr>`).join('')}</tbody></table>`;
-    }
+    window._allBookings = bookings.data;
+    renderDashboardBookings(7);
   }
 }
 
@@ -801,6 +784,49 @@ async function changePassword() {
   const json = await api('/password','PUT',{current_password:current,new_password:newPw});
   showMsg('pwMsg', json.success?'✓ Contraseña actualizada':json.error, json.success?'success':'error');
   if (json.success) { ['pwCurrent','pwNew','pwConfirm'].forEach(id=>document.getElementById(id).value=''); }
+}
+
+function renderDashboardBookings(days) {
+  const today = new Date().toISOString().split('T')[0];
+  const allB = window._allBookings || [];
+  let filtered;
+  const labels = {7:'Próximos 7 días', 14:'Próximos 14 días', 30:'Este mes', 0:'Todas'};
+
+  if (days === 0) {
+    filtered = allB.filter(b => b.booking_date >= today && b.status !== 'cancelled');
+  } else {
+    const end = new Date(); end.setDate(end.getDate() + days);
+    const endStr = end.toISOString().split('T')[0];
+    filtered = allB.filter(b => b.booking_date >= today && b.booking_date <= endStr && b.status !== 'cancelled');
+  }
+
+  const dashHeader = document.querySelector('#page-dashboard .card-header');
+  if (dashHeader) dashHeader.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <h3>📅 ${labels[days]}</h3>
+      <div style="display:flex;gap:5px">
+        ${[7,14,30,0].map(d=>`<button onclick="renderDashboardBookings(${d})" 
+          class="btn btn-sm btn-outline" 
+          style="${d===days?'background:var(--navy);color:#fff;border-color:var(--navy)':''};padding:3px 10px;font-size:0.72rem"
+          >${d===0?'Todas':d+' días'}</button>`).join('')}
+      </div>
+    </div>
+    <span style="font-size:0.8rem;color:var(--ink-m);font-weight:600">
+      ${filtered.length} reserva${filtered.length!==1?'s':''} · 
+      <a href="#" onclick="goToPage('bookings')" style="color:var(--navy);font-weight:700">Ver todas →</a>
+    </span>`;
+
+  if (filtered.length === 0) {
+    document.getElementById('upcomingBookings').innerHTML = `<div class="empty-state">Sin reservas en este período</div>`;
+  } else {
+    document.getElementById('upcomingBookings').innerHTML = `<table><thead><tr><th>Fecha</th><th>Hora</th><th>Estudiante</th><th>Curso</th><th>Estado</th></tr></thead>
+      <tbody>${filtered.map(b=>`<tr>
+        <td>${fmtDate(b.booking_date)}</td><td>${fmtTime(b.start_time)}</td>
+        <td><strong>${b.student_name}</strong><br><small style="color:var(--ink-m)">${b.student_email}</small></td>
+        <td>${b.course_name||'—'}</td>
+        <td><span class="badge badge-${b.status}">${statusLabel(b.status)}</span></td>
+      </tr>`).join('')}</tbody></table>`;
+  }
 }
 
 function goToPage(page) {

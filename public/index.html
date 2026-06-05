@@ -617,6 +617,11 @@ window.addEventListener('load', () => {
 });
 
 // ── NAV ────────────────────────────────────
+// Scroll to top on initial load regardless of hash
+window.addEventListener('load', () => {
+  window.scrollTo(0, 0);
+});
+
 window.addEventListener('scroll', () => {
   document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 50);
 });

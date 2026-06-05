@@ -728,13 +728,18 @@ async function loadSlotsForModal(courseId) {
 }
 function renderSlots() {
   const DAYS_ES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  function cleanDate(d) {
+    if (!d) return '';
+    const s = typeof d === 'string' ? d.substring(0,10) : d;
+    const [y,m,day] = s.split('-').map(Number);
+    return new Date(y, m-1, day).toLocaleDateString('es-CR',{day:'numeric',month:'short',year:'numeric'});
+  }
   document.getElementById('slotsList').innerHTML = currentCourseSlots.map((s,i) => {
     let label = '';
     if (s.slot_type === 'specific') {
-      const d = new Date(s.specific_date + 'T12:00:00');
-      label = `📅 ${d.toLocaleDateString('es-CR',{weekday:'short',day:'numeric',month:'short'})} ${fmtTime(s.start_time)}`;
+      label = `📅 ${cleanDate(s.specific_date)} ${fmtTime(s.start_time)}`;
     } else {
-      label = `🔁 ${DAYS_ES[s.day_of_week]} ${fmtTime(s.start_time)} · ${s.date_from} → ${s.date_to}`;
+      label = `🔁 ${DAYS_ES[s.day_of_week]} ${fmtTime(s.start_time)} · Del ${cleanDate(s.date_from)} al ${cleanDate(s.date_to)}`;
     }
     return `<div class="slot-chip">${label}<button onclick="removeSlot(${i})">×</button></div>`;
   }).join('');

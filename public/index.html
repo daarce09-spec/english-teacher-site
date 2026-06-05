@@ -622,9 +622,7 @@ window.addEventListener('scroll', () => {
 });
 
 // ── DATE ──────────────────────────────────
-const di = document.getElementById('bookDate');
-const tom = new Date(); tom.setDate(tom.getDate() + 1);
-di.min = tom.toISOString().split('T')[0];
+
 
 // ── PROFILE ───────────────────────────────
 fetch('/api/profile').then(r=>r.json()).then(j=>{
@@ -675,6 +673,39 @@ function goBook(id) {
   setTimeout(() => document.getElementById('bookDate').focus(), 600);
 }
 
+async function updateAvailableDates() {
+  const cid = document.getElementById('bookCourse').value;
+  const container = document.getElementById('dateButtons');
+  document.getElementById('bookDate').value = '';
+  document.getElementById('slotsWrap').style.display = 'none';
+  document.getElementById('noSlots').style.display = 'none';
+  selSlot = null;
+  if (!cid) {
+    container.innerHTML = '<span style="font-size:0.82rem;color:var(--ink-m);font-weight:500">Selecciona primero un curso</span>';
+    return;
+  }
+  container.innerHTML = '<span style="font-size:0.82rem;color:var(--ink-m);font-weight:500">Buscando fechas...</span>';
+  selCourseId = cid;
+  const r = await fetch(`${API}/available-days?course_id=${cid}`);
+  const j = await r.json();
+  if (!j.success || !j.data || j.data.length === 0) {
+    container.innerHTML = '<span style="font-size:0.82rem;color:var(--ink-m);font-weight:500">No hay fechas disponibles por el momento</span>';
+    return;
+  }
+  container.innerHTML = j.data.map(date => {
+    const d = new Date(date + 'T12:00:00');
+    const label = d.toLocaleDateString('es-CR', {weekday:'short', day:'numeric', month:'short'});
+    return `<button class="slot" data-date="${date}" onclick="pickDate(this,'${date}')">${label}</button>`;
+  }).join('');
+}
+
+async function pickDate(btn, date) {
+  document.querySelectorAll('#dateButtons .slot').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('bookDate').value = date;
+  await loadSlots();
+}
+
 async function loadSlots() {
   const cid = document.getElementById('bookCourse').value;
   const date = document.getElementById('bookDate').value;
@@ -692,8 +723,7 @@ async function loadSlots() {
   }).join('');
   document.getElementById('slotsWrap').style.display = 'block';
 }
-document.getElementById('bookCourse').addEventListener('change', loadSlots);
-document.getElementById('bookDate').addEventListener('change', loadSlots);
+document.getElementById('bookCourse').addEventListener('change', async () => { await updateAvailableDates(); });
 
 function pickSlot(btn) {
   document.querySelectorAll('.slot').forEach(b => b.classList.remove('active'));
@@ -751,6 +781,7 @@ document.getElementById('btnSubmit').onclick = async () => {
     document.getElementById('step2').classList.remove('active');
     document.getElementById('step1').classList.add('active');
     ['bookCourse','bookDate','sName','sEmail','sPhone','sMsg'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('dateButtons').innerHTML = '<span style="font-size:0.82rem;color:var(--ink-m);font-weight:500">Selecciona primero un curso</span>';
     document.getElementById('slotsWrap').style.display = 'none';
     selSlot = null; selCourseId = null;
   } catch { err.textContent = 'Error de conexión.'; }
